@@ -17,6 +17,7 @@ ns_store = api.namespace('Store', description='CRUD operations for Store')
 @ns_store.route('/store')
 class Store(Resource):
     global table
+    
     def get(self):
         try:
             cursor = table.find()   # operation on table to get all data
@@ -49,4 +50,4 @@ class Store(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 if __name__ == "__main__":
-    app.run(debug=True,host='0.0.0.0', port=8080)
+    app.run(debug=True,host='127.0.0.1', port=8080)
