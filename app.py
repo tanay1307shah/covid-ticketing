@@ -1,30 +1,28 @@
 from flask import Flask, request, Response, render_template, url_for
-from flask_restplus import Api, Resource, fields
+from flask_restplus import Api, Resource, fields,marshal_with
 from bson.json_util import dumps,loads
-from models.store import storeSchema
+from models.store import createStoreSchema, deleteStoreSchema
 from helpers.setupDB import setupDB
 import os
 
 
 app = Flask( __name__, template_folder='./client')
+
+# This function make sure that swagger UI works when deployed onto a https server
 if os.environ.get('NPM_MIRROR'):
     @property
     def specs_url(self):
         return url_for(self.endpoint('specs'), _external=True, _scheme='https')
- 
     Api.specs_url = specs_url
 api = Api(app)
 
 table = setupDB("covid-ticketing-db", "store")
-# Generating schema for store
-store = storeSchema(api)
+ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
 
-ns_store = api.namespace('Store', description='CRUD operations for Store')
-
-@ns_store.route('/store')
+@ns_api_v1.route('/store')
 class Store(Resource):
     global table
-
+   # @marshal_with(store_marshal)
     def get(self):
         try:
             cursor = table.find()   # operation on table to get all data
@@ -37,13 +35,12 @@ class Store(Resource):
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
-    @ns_store.expect(store)
+    @ns_api_v1.expect(createStoreSchema(api))
     def post(self):
         try:
             data = api.payload
             # insert into db
             inserted_docId = table.insert_one({
-            'id_store' : data['id_store'],
             'id_owner' : data['id_owner'],
             'location' : data['location'],
             'name' : data['name'],
@@ -52,6 +49,18 @@ class Store(Resource):
             'reservations': data['reservations']
             }) 
             return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+    @ns_api_v1.response(204, 'Store deleted')
+    @ns_api_v1.expect(deleteStoreSchema(api))
+    def delete(self):
+        try:
+            deleted_docId = table.delete_one(loads(dumps(api.payload)))
+            if deleted_docId.deleted_count:
+                return  {'message':'Succesffuly deleted.'}, 204
+            return {'message':'Cannot perform the operation as there are no documents with the provided id.'}, 200
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
