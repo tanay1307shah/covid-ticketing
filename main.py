@@ -12,7 +12,9 @@ table = setupDB("covid-ticketing-db", "store")
 # Generating schema for store
 store = storeSchema(api)
 
-@api.route('/store')
+ns_store = api.namespace('Store', description='CRUD operations for Store')
+
+@ns_store.route('/store')
 class Store(Resource):
     global table
     def get(self):
@@ -27,19 +29,24 @@ class Store(Resource):
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
-    @api.expect(store)
+    @ns_store.expect(store)
     def post(self):
-        data = api.payload
-        table.insert({
-        'id_store' : data['id_store'],
-        'id_owner' : data['id_owner'],
-        'location' : data['location'],
-        'name' : data['name'],
-        'phone' : data['phone'],
-        'availability': data['availability'],
-        'reservations': data['reservations']
-            }) # insert into db
-        return Response('{"message":"Succesfully added."}', status=201, mimetype='application/json')
+        try:
+            data = api.payload
+            # insert into db
+            inserted_docId = table.insert({
+            'id_store' : data['id_store'],
+            'id_owner' : data['id_owner'],
+            'location' : data['location'],
+            'name' : data['name'],
+            'phone' : data['phone'],
+            'availability': data['availability'],
+            'reservations': data['reservations']
+            }) 
+            return Response('{"message":"Succesfully added."}', status=201, mimetype='application/json')
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 if __name__ == "__main__":
     app.run(debug=True)
