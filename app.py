@@ -3,9 +3,16 @@ from flask_restplus import Api, Resource, fields
 from bson.json_util import dumps,loads
 from models.store import storeSchema
 from helpers.setupDB import setupDB
+import os
 
 
 app = Flask( __name__, template_folder='./client')
+if os.environ.get('NPM_MIRROR'):
+    @property
+    def specs_url(self):
+        return url_for(self.endpoint('specs'), _external=True, _scheme='https')
+ 
+    Api.specs_url = specs_url
 api = Api(app)
 
 table = setupDB("covid-ticketing-db", "store")
@@ -35,7 +42,7 @@ class Store(Resource):
         try:
             data = api.payload
             # insert into db
-            inserted_docId = table.insert({
+            inserted_docId = table.insert_one({
             'id_store' : data['id_store'],
             'id_owner' : data['id_owner'],
             'location' : data['location'],
@@ -44,7 +51,7 @@ class Store(Resource):
             'availability': data['availability'],
             'reservations': data['reservations']
             }) 
-            return Response('{"message":"Succesfully added."}', status=201, mimetype='application/json')
+            return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
