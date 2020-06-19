@@ -5,7 +5,6 @@ from models.store import createStoreSchema, deleteStoreSchema
 from models.customer import createCustomerSchema, deleteCustomerSchema, getCustomerSchema
 from models.login import loginInfoModel
 from helpers.setupDB import setupDB
-from helpers.customerLogic import getLastCustomerId
 from passlib.hash import pbkdf2_sha256
 import os
 import sys
@@ -23,7 +22,6 @@ api = Api(app)
 
 table = setupDB("covid-ticketing-db", "store")
 customerTable = setupDB("covid-ticketing-db","customer")
-customerId = 0
 ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
 
 @ns_api_v1.route('/store')
@@ -87,7 +85,7 @@ class Customer(Resource):
             response = []
             for document in cursor: # iterate through each db result and append to a list
                 response.append(document)
-                return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
 
 
         except Exception as e:
@@ -98,20 +96,11 @@ class Customer(Resource):
     @ns_api_v1.expect(createCustomerSchema(api))
     def post(self):
         try:
-            customerId = getLastCustomerId(customerTable)
-            
-            if customerId == sys.maxsize:
-                raise Exception()
-            else:
-                customerId += 1
-            
             data = api.payload
-            
             hash = pbkdf2_sha256.hash(data['password'])
        
             # insert into db
             inserted_docId = customerTable.insert_one({
-            'id' : customerId,
             'name' : data['name'],
             'phone' : data['phone'],
             'username' : data['username'],
