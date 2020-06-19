@@ -1,12 +1,13 @@
 from flask import Flask, request, Response, render_template, url_for
 from flask_restplus import Api, Resource, fields, marshal_with
 from bson.json_util import dumps, loads
+from bson import ObjectId
 from models.store import createStoreSchema, deleteStoreSchema
 from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema
 from helpers.setupDB import setupDB
 from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToStringTime
 import os
-
+import operator
 
 app = Flask(__name__, template_folder='./client')
 
@@ -106,20 +107,30 @@ class Availability(Resource):
                 })
                 start_time_mins = start_time_mins + \
                     int(data['timeslot-duration'])
-            # table["store"].update({
-            # "_id": {
-            #     "$oid": data['id']
-            #     },
 
-            # })
-            # inserted_docId = table["store"].insert_one({
-            # 'date' : data['date'],
-            # 'start' : data['location'],
-            # 'name' : data['name'],
-            # 'phone' : data['phone'],
-            # 'availability': data['availability'],
-            # 'reservations': data['reservations']
-            # })
+            selectedStore = ""
+            cursor = table["store"].find({"_id": ObjectId(data['store_id'])})
+            for doc in cursor:
+                selectedStore = doc
+            # check if availability for the store is empty as of now
+            if selectedStore['availability'] is not None:
+                for element in availability:
+                    # only add availability timeslots which are not already existing
+                    if not((element['date'] == data['date'] and element['start-time'] == data['start-time'] and element['end-time'] == data['end-time'])):
+                        selectedStore['availability'].append(element)
+            # update the store with sorted availability
+                result = table["store"].update_one({
+                    "_id": ObjectId(data['store_id'])
+                }, {"$set": {
+                    "availability": sorted(selectedStore['availability'], key=lambda elem: "%s %s" % (elem['date'], elem['start-time']))
+                }}, upsert=False)
+            else:
+                result = table["store"].update_one({
+                    "_id": ObjectId(data['store_id'])
+                }, {"$set": {
+                    "availability": availability
+                }}, upsert=False)
+
             return Response('{"message":"Succesfully added.","result":%s}' % dumps(availability), status=201, mimetype='application/json')
         except Exception as e:
             print("Error occured:", str(e.args))
