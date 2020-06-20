@@ -17,7 +17,7 @@ def createStoreSchema(api):
     return storeModel
 
 
-def deleteStoreSchema(api):
+def createDeleteStoreSchema(api):
 
     objectId = api.model('objectId', {
         "$oid": fields.String()
