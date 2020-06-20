@@ -21,11 +21,11 @@ def createAvailabilityTimeSlotSchema(api):
     return availabilityTimeSlotSchema
 
 
-def deleteAvailabilitySchema(api):
-    objectId = api.model('objectId', {
-        "$oid": fields.String()
+def createDeleteAvailabilitySchema(api):
+    deleteAvailabilitySchema = api.model('deleteAvailability', {
+        'store_id': fields.String(required=True, description='The store identifier'),
+        'date': fields.String(required=True, description='The availability date xx/xx/xxxx'),
+        'start-time': fields.String(required=True, description='The availability start time'),
+        'end-time': fields.String(required=True, description='The availability end time')
     })
-    id = api.model('id', {
-        "_id": fields.Nested(objectId)
-    })
-    return id
+    return deleteAvailabilitySchema

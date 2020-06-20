@@ -16,7 +16,7 @@ def createCustomerSchema(api):
     return customerModel
 
 
-def deleteCustomerSchema(api):
+def createDeleteCustomerSchema(api):
 
     objectId = api.model('objectId', {
         "$oid": fields.String()

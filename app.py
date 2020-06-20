@@ -2,11 +2,11 @@ from flask import Flask, request, Response, render_template, url_for
 from flask_restplus import Api, Resource, fields, marshal_with
 from bson.json_util import dumps, loads
 from bson import ObjectId
-from models.store import createStoreSchema, deleteStoreSchema
-from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema, deleteAvailabilitySchema
+from models.store import createStoreSchema, createDeleteStoreSchema
+from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema, createDeleteAvailabilitySchema
 from helpers.setupDB import setupDB
 from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToStringTime
-from models.customer import createCustomerSchema, deleteCustomerSchema
+from models.customer import createCustomerSchema, createDeleteCustomerSchema
 from models.login import loginInfoModel
 from helpers.setupDB import setupDB
 from passlib.hash import pbkdf2_sha256
@@ -23,6 +23,11 @@ if os.environ.get('NPM_MIRROR'):
 api = Api(app)
 
 db = setupDB("covid-ticketing-db")
+STORE_TABLE = "store"
+CUSTOMER_TABLE = "customer"
+OWNER_TABLE = "owner"
+
+
 ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
 
 
@@ -63,7 +68,7 @@ class Store(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
     @ns_api_v1.response(204, 'Store deleted')
-    @ns_api_v1.expect(deleteStoreSchema(api))
+    @ns_api_v1.expect(createDeleteStoreSchema(api))
     def delete(self):
         try:
             deleted_docId = db["store"].delete_one(
@@ -115,12 +120,19 @@ class Availability(Resource):
             cursor = db["store"].find({"_id": ObjectId(data['store_id'])})
             for doc in cursor:
                 selectedStore = doc
+            bDuplicateItemFound = False
             # check if availability for the store is empty as of now
             if selectedStore['availability'] is not None:
                 for element in availability:
-                    # only add availability timeslots which are not already existing
-                    if not((element['date'] == data['date'] and element['start-time'] == data['start-time'] and element['end-time'] == data['end-time'])):
+                    bDuplicateItemFound = False
+                    for item in selectedStore['availability']:
+                        # only add availability timeslots which are not already existing
+                        if ((element['date'] == item['date'] and element['start-time'] == item['start-time'] and element['end-time'] == item['end-time'])):
+                            bDuplicateItemFound = True
+                            break
+                    if not(bDuplicateItemFound):
                         selectedStore['availability'].append(element)
+
             # update the store with sorted availability
                 result = db["store"].update_one({
                     "_id": ObjectId(data['store_id'])
@@ -140,13 +152,23 @@ class Availability(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
     @ns_api_v1.response(204, 'Availability deleted')
-    @ns_api_v1.expect(deleteAvailabilitySchema(api))
+    @ns_api_v1.expect(createDeleteAvailabilitySchema(api))
     def delete(self):
         try:
-            # TODO
-            return {'message': 'Cannot perform the operation as there are no documents with the provided id.'}, 200
+            data = api.payload
+            result = db["store"].update({
+                '_id': ObjectId(data['store_id']),
+            }, {
+                '$pull': {"availability": {
+                    "date": data['date'],
+                    "start-time": data['start-time'],
+                    "end-time": data['end-time']
+                }}
+            })
+            print(result)
+            return {'message': 'Availability deleted successfully.'}, 204
         except Exception as e:
-            print("Error occured:", str(e.args))
+            print("Error occurred:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
