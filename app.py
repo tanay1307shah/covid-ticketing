@@ -4,7 +4,7 @@ from bson.json_util import dumps, loads
 from bson import ObjectId
 from models.store import createStoreSchema, createDeleteStoreSchema
 from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema, createDeleteAvailabilitySchema
-from models.reservation import createReservationSchema
+from models.reservation import createReservationSchema, createDeleteReservationSchema
 from helpers.setupDB import setupDB
 from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToStringTime
 from models.customer import createCustomerSchema, createDeleteCustomerSchema
@@ -229,14 +229,38 @@ class Reservations(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
     @ns_api_v1.response(204, 'Store deleted')
-    @ns_api_v1.expect(createDeleteStoreSchema(api))
+    @ns_api_v1.expect(createDeleteReservationSchema(api))
     def delete(self):
         try:
-            deleted_docId = db["store"].delete_one(
-                loads(dumps(api.payload)))
-            if deleted_docId.deleted_count:
-                return {'message': 'Succesffuly deleted.'}, 204
-            return {'message': 'Cannot perform the operation as there are no documents with the provided id.'}, 200
+            data = api.payload
+
+            delete_store_reservation_result = db["store"].update({
+                '_id': ObjectId(data['store_id']),
+            }, {
+                '$pull': {"reservations": {
+                    "date": data['date'],
+                    "start-time": data['start-time'],
+                    "end-time": data['end-time'],
+                    "customer_id": data['customer_id']
+                }}
+            })
+
+            delete_customer_reservation_result = db["customer"].update({
+                '_id': ObjectId(data['customer_id']),
+            }, {
+                '$pull': {"reservations": {
+                    "date": data['date'],
+                    "start-time": data['start-time'],
+                    "end-time": data['end-time'],
+                    "store_id": data['store_id']
+                }}
+            })
+            # If one document is modified
+            if(int(delete_store_reservation_result['nModified']) and int(delete_customer_reservation_result['nModified'])):
+                return {'message': 'Successfully deleted the reservation.'}, 204
+
+            return {'message': 'Cannot perform the operation as there are no reservations with requested details.'}, 200
+
         except Exception as e:
             print("Error occurred:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
@@ -281,7 +305,7 @@ class Customer(Resource):
 
 
 @ns_api_v1.route('/customer/login')
-class customerLogin(Resource):
+class CustomerLogin(Resource):
     global db
 
     @ns_api_v1.expect(loginInfoModel(api))
