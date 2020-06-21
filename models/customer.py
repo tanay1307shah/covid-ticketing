@@ -1,10 +1,10 @@
 from flask_restplus import fields
-from models.reservation import createReservationSchema
+from .reservation import createCustomerReservationSchema
 
 
 def createCustomerSchema(api):
 
-    reservation = createReservationSchema(api)
+    reservation = createCustomerReservationSchema(api)
 
     customerModel = api.model('Customer', {
         'username': fields.String(required=True, description='Username for the customer.'),
