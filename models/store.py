@@ -1,13 +1,13 @@
 from flask_restplus import fields
 from .availability import createAvailabilitySchema
-from .reservation import createReservationSchema
+from .reservation import createStoreReservationSchema
 
 
 def createStoreSchema(api):
     availability = createAvailabilitySchema(api)
-    reservation = createReservationSchema(api)
+    reservation = createStoreReservationSchema(api)
     storeModel = api.model('Store', {
-        'id_owner': fields.String(required=True, description='ID of the store owner.'),
+        'owner_id': fields.String(required=True, description='ID of the store owner.'),
         'location': fields.String(required=True, description='Address of the store.'),
         'name': fields.String(required=True, description='Name of the store.'),
         'phone': fields.String(required=True, description='Phone number for the store.'),

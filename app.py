@@ -4,6 +4,7 @@ from bson.json_util import dumps, loads
 from bson import ObjectId
 from models.store import createStoreSchema, createDeleteStoreSchema
 from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema, createDeleteAvailabilitySchema
+from models.reservation import createReservationSchema
 from helpers.setupDB import setupDB
 from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToStringTime
 from models.customer import createCustomerSchema, createDeleteCustomerSchema
@@ -165,8 +166,77 @@ class Availability(Resource):
                     "end-time": data['end-time']
                 }}
             })
-            print(result)
             return {'message': 'Availability deleted successfully.'}, 204
+        except Exception as e:
+            print("Error occurred:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+
+@ns_api_v1.route('/reservations')
+class Reservations(Resource):
+    global db
+
+    @ns_api_v1.expect(createReservationSchema(api))
+    def post(self):
+        try:
+            data = api.payload
+            selectedStore = ""
+            selectedCustomer = ""
+            cursor = db["store"].find({"_id": ObjectId(data['store_id'])})
+            for doc in cursor:
+                selectedStore = doc
+            cursor = db["customer"].find(
+                {"_id": ObjectId(data['customer_id'])})
+            for doc in cursor:
+                selectedCustomer = doc
+
+            bDuplicateItemFound = False
+            for reservation in selectedStore['reservations']:
+                # only add reservation timeslots which are not already existing
+                if ((reservation['date'] == data['date'] and reservation['start-time'] == data['start-time'] and reservation['end-time'] == data['end-time'])):
+                    bDuplicateItemFound = True
+                    break
+            # Only push the reservation if there are no duplicates
+            if not(bDuplicateItemFound):
+                # push the reservation to store table
+                result = db["store"].update({
+                    '_id': ObjectId(data['store_id']),
+                }, {
+                    '$push': {"reservations": {
+                        "customer_id": data['customer_id'],
+                        "date": data['date'],
+                        "start-time": data['start-time'],
+                        "end-time": data['end-time']
+                    }}
+                })
+                # push the reservation to customer table
+                result = db["customer"].update({
+                    '_id': ObjectId(data['customer_id']),
+                }, {
+                    '$push': {"reservations": {
+                        "store_id": data['store_id'],
+                        "date": data['date'],
+                        "start-time": data['start-time'],
+                        "end-time": data['end-time']
+                    }}
+                })
+                return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
+            else:
+                return Response('{"message":"Could not save the reservation as a duplicate entry was found".}', status=400, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+    @ns_api_v1.response(204, 'Store deleted')
+    @ns_api_v1.expect(createDeleteStoreSchema(api))
+    def delete(self):
+        try:
+            deleted_docId = db["store"].delete_one(
+                loads(dumps(api.payload)))
+            if deleted_docId.deleted_count:
+                return {'message': 'Succesffuly deleted.'}, 204
+            return {'message': 'Cannot perform the operation as there are no documents with the provided id.'}, 200
         except Exception as e:
             print("Error occurred:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
@@ -222,7 +292,6 @@ class customerLogin(Resource):
             response = []
             for document in cursor:  # iterate through each db result and append to a list
                 response.append(document)
-            print(response)
             if response != [] and pbkdf2_sha256.verify(data['password'], response[0]['password']):
                 return Response('{"response":"Authorized"}', status=200, mimetype='application/json')
             return Response('{"response":"Unauthorized"}', status=401, mimetype='application/json')
