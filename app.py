@@ -2,15 +2,21 @@ from flask import Flask, request, Response, render_template, url_for
 from flask_restplus import Api, Resource, fields, marshal_with
 from bson.json_util import dumps, loads
 from bson import ObjectId
+
 from models.store import createStoreSchema, createDeleteStoreSchema
 from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema, createDeleteAvailabilitySchema
 from models.reservation import createReservationSchema, createDeleteReservationSchema
+from models.owner import createOwnerSchema, createDeleteOwnerSchema
+from models.search import searchModel
+
 from helpers.setupDB import setupDB
 from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToStringTime
 from models.customer import createCustomerSchema, createDeleteCustomerSchema
 from models.login import loginInfoModel
 from helpers.setupDB import setupDB
 from passlib.hash import pbkdf2_sha256
+
+
 import os
 
 app = Flask(__name__, template_folder='./client')
@@ -304,25 +310,64 @@ class Customer(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
-@ns_api_v1.route('/customer/login')
-class CustomerLogin(Resource):
+@ns_api_v1.route('/owner')
+class Owner(Resource):
     global db
 
-    @ns_api_v1.expect(loginInfoModel(api))
+    @ns_api_v1.expect(createOwnerSchema(api))
     def post(self):
         try:
             data = api.payload
-            cursor = db['customer'].find({"username": data['username']})
-            response = []
-            for document in cursor:  # iterate through each db result and append to a list
-                response.append(document)
-            if response != [] and pbkdf2_sha256.verify(data['password'], response[0]['password']):
-                return Response('{"response":"Authorized"}', status=200, mimetype='application/json')
+            inserted_docId = db['owner'].insert_one({
+                'name': data['name'],
+                'phone': data['phone'],
+                'username': data['username'],
+                'password': pbkdf2_sha256.hash(data['password']),
+            })
+            return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            if str(e.args).find("duplicate key error") > -1:
+                return Response('{"message":"Username already used. Please provide a different username."}', status=400, mimetype='application/json')
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+@ns_api_v1.route('/login/<type>')
+@ns_api_v1.doc(params={'type':'owner or customer'})
+class OwnerLogin(Resource):
+    global db
+
+    @ns_api_v1.expect(loginInfoModel(api))
+    def post(self,type):
+        try:
+            data = api.payload
+            cursor = db[type.lower()].find_one({"username": data['username']})
+            response  = cursor
+            if response != None and pbkdf2_sha256.verify(data['password'], response['password']):
+                return Response('{"response":"Authorized","_id": %s}' % dumps(response['_id']), status=200, mimetype='application/json')
             return Response('{"response":"Unauthorized"}', status=401, mimetype='application/json')
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
+@ns_api_v1.route('/search')
+@ns_api_v1.doc(params={'searchTerm': {'description': 'Term to search', 'in': 'query', 'type': 'string'}})
+class Search(Resource):
+    global db
+
+    def get(self):
+        try:
+          # operation on table to get all data
+            cursor = db['store'].find({ "$text": { "$search": dumps(request.args.get('searchTerm')) } })
+            response = []
+            for document in cursor:  # iterate through each db result and append to a list
+                response.append(document)
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')        
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')    
+            
+
+            
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)
