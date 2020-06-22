@@ -7,7 +7,7 @@ def createStoreSchema(api):
     availability = createAvailabilitySchema(api)
     reservation = createStoreReservationSchema(api)
     storeModel = api.model('Store', {
-        'owner_id': fields.String(required=True, description='ID of the store owner.'),
+        'id_owner': fields.String(required=True, description='ID of the store owner.'),
         'location': fields.String(required=True, description='Address of the store.'),
         'name': fields.String(required=True, description='Name of the store.'),
         'phone': fields.String(required=True, description='Phone number for the store.'),
