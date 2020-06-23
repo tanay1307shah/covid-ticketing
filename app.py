@@ -7,7 +7,7 @@ from models.store import createStoreSchema, createDeleteStoreSchema
 from models.availability import createAvailabilitySchema, createAvailabilityTimeSlotSchema, createDeleteAvailabilitySchema
 from models.reservation import createReservationSchema, createDeleteReservationSchema
 from models.owner import createOwnerSchema, createDeleteOwnerSchema
-from models.search import searchModel
+
 
 from helpers.setupDB import setupDB
 from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToStringTime
@@ -271,11 +271,26 @@ class Reservations(Resource):
             print("Error occurred:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
+@ns_api_v1.route('/customer/<id>')
+@ns_api_v1.doc(params={'id':'customer_id'})
+class CustomerData(Resource):
+    global db
+   # @marshal_with(store_marshal)
+
+    def get(self,id):
+        try:
+            # operation on table to get all data
+            cursor = db['customer'].find_one(ObjectId(id), {"password": 0})
+            response = cursor
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 @ns_api_v1.route('/customer')
 class Customer(Resource):
     global db
-   # @marshal_with(store_marshal)
 
     def get(self):
         try:
@@ -367,7 +382,26 @@ class Search(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')    
             
 
-            
+
+#-----------Serve front end file ---------------------------            
+
+@app.route("/home")
+def renderHomePage():
+    return render_template('index.html')
+
+@app.route("/customerReservations/<id>")
+def renderCustomerReservations(id):
+    customer_id = id
+    return render_template('CustomerReservations.html',id=customer_id)
+
+@app.route("/signup")
+def renderSignUp():
+    return render_template('signUp.html')
+
+@app.route("/customerAvailability/<id>")
+def renderCustomerAvailability(id):
+    customer_id = id
+    return render_template('CustomerAvailability.html',id=customer_id)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)

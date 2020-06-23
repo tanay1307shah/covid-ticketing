@@ -3,9 +3,10 @@
 
 <head>
     <title>COVID Tracking</title>
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.0.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
 
@@ -14,6 +15,30 @@
             font-family: 'Poppins', sans-serif;
         }
     </style>
+
+    <script>
+        function login() {
+            var accountType = $('input[name=inlineRadioOptions]:checked','#accountType').val();
+            var username = $('#email').val()
+            var password = $('#password').val()
+
+            $.ajax({
+                type: "POST",
+                url: "/api/v1/login/" + accountType,
+                data: JSON.stringify({ username, password }),
+                contentType: 'application/json',
+                success: function (data) {
+                    console.log(data._id.$oid);
+                    if(accountType == 'customer'){
+                        location.replace("/customerReservations/"+data._id.$oid);
+                    }
+                },
+                error: function (data) {
+                    alert("Error");
+                },
+            });
+        }
+    </script>
 
 </head>
 
@@ -48,33 +73,33 @@
                     <div class="card-body">
                         <h1 class="card-title"><b>Login</b></h1>
                         <form>
-                            <div class="accountType" style="padding-top:10px;padding-bottom:10px">
+                            <div id="accountType" class="accountType" style="padding-top:10px;padding-bottom:10px">
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
+                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="customer">
                                     <label class="form-check-label" for="inlineRadio1">Customer</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
+                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="owner">
                                     <label class="form-check-label" for="inlineRadio2">Owner</label>
                                 </div>
                             </div>
                             <div class="userAndPass">
                                 <div class="form-group">
                                     <small id="emailHelp" class="form-text text-muted" style="text-align: left">Username</small>
-                                    <input type="email" class="form-control border border-dark rounded-lg " id="exampleFormControlInput1" placeholder="">
+                                    <input type="text" class="form-control border border-dark rounded-lg " id="email" placeholder="">
                                 </div>
                                 <div class="form-group">
                                     <small id="emailHelp" class="form-text text-muted" style="text-align: left">Password</small>
-                                    <input type="email" class="form-control border border-dark rounded-lg " id="exampleFormControlInput1" placeholder="">
+                                    <input type="password" class="form-control border border-dark rounded-lg " id="password" placeholder="">
                                 </div>
                             </div>
                         </form>
-                        <a href="#" class="btn btn-primary">Submit</a>
+                        <a href="#" class="btn btn-primary" onclick="login()">Submit</a>
                     </div>
 
                 </div>
                 <div class="" style="padding-top:20px;text-align:center;color:black">
-                    <a href="signUp.html" style="color:black">Sign up here.</a>
+                    <a href="/signup" style="color:black">Sign up here.</a>
                 </div>
             </div>
 
