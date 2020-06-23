@@ -30,6 +30,7 @@ if os.environ.get('NPM_MIRROR'):
 api = Api(app)
 
 db = setupDB("covid-ticketing-db")
+
 STORE_TABLE = "store"
 CUSTOMER_TABLE = "customer"
 OWNER_TABLE = "owner"
@@ -228,7 +229,7 @@ class Reservations(Resource):
                 })
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
             else:
-                return Response('{"message":"Could not save the reservation as a duplicate entry was found".}', status=400, mimetype='application/json')
+                return Response('{"message":"Could not save the reservation as a duplicate entry was found."}', status=201, mimetype='application/json')
 
         except Exception as e:
             print("Error occured:", str(e.args))
@@ -271,13 +272,14 @@ class Reservations(Resource):
             print("Error occurred:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
+
 @ns_api_v1.route('/customer/<id>')
-@ns_api_v1.doc(params={'id':'customer_id'})
+@ns_api_v1.doc(params={'id': 'customer_id'})
 class CustomerData(Resource):
     global db
    # @marshal_with(store_marshal)
 
-    def get(self,id):
+    def get(self, id):
         try:
             # operation on table to get all data
             cursor = db['customer'].find_one(ObjectId(id), {"password": 0})
@@ -287,6 +289,7 @@ class CustomerData(Resource):
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
 
 @ns_api_v1.route('/customer')
 class Customer(Resource):
@@ -329,6 +332,19 @@ class Customer(Resource):
 class Owner(Resource):
     global db
 
+    def get(self):
+        try:
+            # operation on table to get all data
+            cursor = db['owner'].find({}, {"password": 0})
+            response = []
+            for document in cursor:  # iterate through each db result and append to a list
+                response.append(document)
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
     @ns_api_v1.expect(createOwnerSchema(api))
     def post(self):
         try:
@@ -346,23 +362,25 @@ class Owner(Resource):
                 return Response('{"message":"Username already used. Please provide a different username."}', status=400, mimetype='application/json')
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
+
 @ns_api_v1.route('/login/<type>')
-@ns_api_v1.doc(params={'type':'owner or customer'})
+@ns_api_v1.doc(params={'type': 'owner or customer'})
 class OwnerLogin(Resource):
     global db
 
     @ns_api_v1.expect(loginInfoModel(api))
-    def post(self,type):
+    def post(self, type):
         try:
             data = api.payload
             cursor = db[type.lower()].find_one({"username": data['username']})
-            response  = cursor
+            response = cursor
             if response != None and pbkdf2_sha256.verify(data['password'], response['password']):
                 return Response('{"response":"Authorized","_id": %s}' % dumps(response['_id']), status=200, mimetype='application/json')
             return Response('{"response":"Unauthorized"}', status=401, mimetype='application/json')
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
 
 @ns_api_v1.route('/search')
 @ns_api_v1.doc(params={'searchTerm': {'description': 'Term to search', 'in': 'query', 'type': 'string'}})
@@ -372,36 +390,68 @@ class Search(Resource):
     def get(self):
         try:
           # operation on table to get all data
-            cursor = db['store'].find({ "$text": { "$search": dumps(request.args.get('searchTerm')) } })
+            cursor = db['store'].find(
+                {"$text": {"$search": dumps(request.args.get('searchTerm'))}})
             response = []
             for document in cursor:  # iterate through each db result and append to a list
                 response.append(document)
-            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')        
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
         except Exception as e:
             print("Error occured:", str(e.args))
-            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')    
-            
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
-#-----------Serve front end file ---------------------------            
+@ns_api_v1.route('/reservations/<type>/<id>')
+@ns_api_v1.doc(params={'type': 'Customer or owner', 'id': 'Id of owner or customer'})
+class Search(Resource):
+    global db
+
+    def get(self, type, id):
+        try:
+            if(type.lower() == "customer"):
+                selectedCustomer = db[type.lower()].find_one(
+                    {"_id": ObjectId(id)})
+                if(selectedCustomer):
+                    return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(selectedCustomer['reservations']), status=200, mimetype='application/json')
+            elif(type.lower() == "owner"):
+                response = []
+                storesOwnedByOwner = db["store"].find(
+                    {"id_owner": id})
+                if(storesOwnedByOwner.count()):
+                    for store in storesOwnedByOwner:
+                        response.append(
+                            {"id_store": str(store["_id"]), "reservations": store["reservations"]})
+                    return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+            return Response('{"message":"Cannot find any reservations."}', status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+
+# -----------Serve front end file ---------------------------
 
 @app.route("/home")
 def renderHomePage():
     return render_template('index.html')
 
+
 @app.route("/customerReservations/<id>")
 def renderCustomerReservations(id):
     customer_id = id
-    return render_template('CustomerReservations.html',id=customer_id)
+    return render_template('CustomerReservations.html', id=customer_id)
+
 
 @app.route("/signup")
 def renderSignUp():
     return render_template('signUp.html')
 
+
 @app.route("/customerAvailability/<id>")
 def renderCustomerAvailability(id):
     customer_id = id
-    return render_template('CustomerAvailability.html',id=customer_id)
+    return render_template('CustomerAvailability.html', id=customer_id)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)
