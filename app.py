@@ -403,7 +403,7 @@ class Search(Resource):
 
 @ns_api_v1.route('/reservations/<type>/<id>')
 @ns_api_v1.doc(params={'type': 'Customer or owner', 'id': 'Id of owner or customer'})
-class Search(Resource):
+class RetreiveReservations(Resource):
     global db
 
     def get(self, type, id):
