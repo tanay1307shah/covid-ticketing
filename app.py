@@ -479,6 +479,20 @@ def renderCustomerAvailability(id):
     customer_id = id
     return render_template('CustomerAvailability.html', id=customer_id)
 
+@app.route("/ownerStores/<id>")
+def renderOwnerStores(id):
+    owner_id = id
+    return render_template('OwnerStores.html', id=owner_id)
+
+@app.route("/ownerAvailability/<id>")
+def renderOWnerAvailability(id):
+    owner_id = id
+    return render_template('OwnerAvailability.html', id=owner_id)
+
+@app.route("/ownerReservations/<id>")
+def renderOwnerReseervations(id):
+    owner_id = id
+    return render_template('OwnerReservations.html', id=owner_id)
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)
