@@ -19,10 +19,7 @@ def createStoreSchema(api):
 
 def createDeleteStoreSchema(api):
 
-    objectId = api.model('objectId', {
-        "$oid": fields.String()
+    deleteStoreModel = api.model('deleteStoreModel', {
+        'store_id': fields.String('ID of the store.'),
     })
-    id = api.model('id', {
-        "_id": fields.Nested(objectId)
-    })
-    return id
+    return deleteStoreModel

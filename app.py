@@ -79,11 +79,38 @@ class Store(Resource):
     @ns_api_v1.expect(createDeleteStoreSchema(api))
     def delete(self):
         try:
-            deleted_docId = db["store"].delete_one(
-                loads(dumps(api.payload)))
-            if deleted_docId.deleted_count:
-                return {'message': 'Succesffuly deleted.'}, 204
-            return {'message': 'Cannot perform the operation as there are no documents with the provided id.'}, 200
+            customerIdsWithReservations = []
+            selectedStore = ""
+            # find the store that needs to be deleted
+            selectedStore = db["store"].find_one(
+                {"_id": ObjectId(api.payload['store_id'])})
+            if selectedStore:
+                # find reservations of customerids that needs to be deleted
+                for reservation in selectedStore['reservations']:
+                    customerIdsWithReservations.append(
+                        reservation['customer_id'])
+                # delete those reservations of the store from customer table
+                for customerId in customerIdsWithReservations:
+                    customer = db['customer'].find_one(
+                        {'_id': ObjectId(customerId)})
+                    for reservation in customer['reservations']:
+                        if reservation['store_id'] == api.payload['store_id']:
+                            db["customer"].update({
+                                '_id': ObjectId(customerId),
+                            }, {
+                                '$pull': {"reservations": {
+                                    "date": reservation['date'],
+                                    "start-time": reservation['start-time'],
+                                    "end-time": reservation['end-time'],
+                                    "store_id": reservation['store_id']
+                                }}
+                            })
+                # Now that all the reservations are deleted from customer table, safely delete the store
+                deleted_docId = db["store"].delete_one(
+                    {'_id': ObjectId(api.payload['store_id'])})
+                if deleted_docId.deleted_count:
+                    return {'message': 'Succesffuly deleted.'}, 204
+            return {'message': 'Cannot perform the operation as there is no store with the provided id.'}, 200
         except Exception as e:
             print("Error occurred:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')

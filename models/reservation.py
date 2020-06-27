@@ -33,7 +33,7 @@ def createCustomerReservationSchema(api):
 
 
 def createDeleteReservationSchema(api):
-    deleteReservationSchema = api.model('deleteAvailability', {
+    deleteReservationSchema = api.model('deleteReservation', {
         'store_id': fields.String(required=True, description='Id of the store'),
         'customer_id': fields.String(required=True, description='Id of the store'),
         'date': fields.String(required=True, description='The availability date xx/xx/xxxx'),
