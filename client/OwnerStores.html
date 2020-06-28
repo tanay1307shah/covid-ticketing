@@ -5,6 +5,12 @@
     <title>COVID Tracking</title>
     <script src="https://code.jquery.com/jquery-3.4.1.js"
         integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+
+    <!-- Notification library -->
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.js"></script>
+
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
         rel="stylesheet">
@@ -20,6 +26,17 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
         }
     </style>
 
@@ -58,23 +75,23 @@
         <h1 style="text-align:center;padding-top:20px;padding-bottom:20px"><b> Stores</b> </h1>
         <div class="row">
             <div class="col-3">
-                <label class="sr-only" for="inlineFormInputName2">Name</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Name">
+                <label class="sr-only" for="store-name">Name</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="store-name" placeholder="Name">
                 <h6 style="padding-left:13px; padding-top: 50px"> Name </h6>
             </div>
             <div class="col-5">
-                <label class="sr-only" for="inlineFormInputName2">Location</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Location">
+                <label class="sr-only" for="store-location">Location</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="store-location" placeholder="Location">
                 <h6 style="padding-left:13px; padding-top: 50px"> Location </h6>
             </div>
             <div class="col-3">
-                <label class="sr-only" for="inlineFormInputName2">Phone Number</label>
-                <input type="text" style="text-align: right" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                <label class="sr-only" for="store-number">Phone Number</label>
+                <input type="number" style="text-align: right" class="form-control mb-2 mr-sm-2" id="store-number"
                     placeholder="Phone Number">
                 <h6 style="padding-right:13px;text-align: right; padding-top: 50px"> Phone Number </h6>
             </div>
             <div class="col-1">
-                <button type="submit" class="btn btn-primary btn-sm mb-2">Create</button>
+                <button type="button" onclick="onCreateStore()" class="btn btn-primary btn-sm mb-2">Create</button>
             </div>
         </div>
     </div>
@@ -92,6 +109,7 @@
     </div>
 
     <script>
+
         allStores = []
         function getAndLoadStores() {
 
@@ -133,7 +151,7 @@
                 <div class="col-1"> `;
                 for (var store of stores) {
                     html += `<a href="#" style="color:red">
-                    <h6 class="delete-button" id=${store['_id']['$oid']} onclick="onDeleteStore(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                    <h6 class="delete-button" id=${store['_id']['$oid']} onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
                 </a>`
                 }
                 html += `</div>`;
@@ -142,18 +160,70 @@
 
         }
 
-        function onDeleteStore(evt) {
-            evt.getAttribute('id');
+        function onCreateStore() {
+            var name = $("#store-name").val();
+            var location = $("#store-location").val();
+            var number = $("#store-number").val();
+            if (!!name && !!location && !!number) {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/v1/store",
+                    data: JSON.stringify({
+                        "id_owner": "{{ id }}",
+                        "location": location,
+                        "name": name,
+                        "phone": number,
+                        "availability": [],
+                        "reservations": []
+                    }),
+                    contentType: 'application/json',
+                    success: function (result) {
+                        getAndLoadStores();
+                        showNotification("Success", "Successfully created the store.")
+
+                    },
+                    error: function (data) {
+                        showNotification("error", "Oops! Something went wrong.")
+                    },
+                });
+            } else {
+                showNotification("error", "Please fill up the fields before proceeding.")
+            }
+        }
+
+        function showNotification(type, message) {
+            $("body").overhang({
+                type,
+                message
+            });
+        }
+
+        function onDelete(evt) {
+            $("body").overhang({
+                type: "confirm",
+                message: "Are you sure?",
+                overlay: true,
+                callback: (function (value) {
+                    if (value) {
+                        deleteStore(this.id);
+                    }
+                }).bind({ "id": evt.getAttribute('id') })
+            });
+        }
+
+        function deleteStore(id) {
             $.ajax({
                 type: "DELETE",
                 url: "/api/v1/store",
-                data: JSON.stringify({ "store_id": evt.getAttribute('id') }),
+                data: JSON.stringify({ "store_id": id }),
                 contentType: 'application/json',
                 success: function (result) {
+                    showNotification("success", "Successfully deleted the store.")
                     getAndLoadStores();
+
                 },
                 error: function (data) {
-                    alert("Error");
+                    showNotification("error", "Oops! Something went wrong.")
                 },
             });
         }
