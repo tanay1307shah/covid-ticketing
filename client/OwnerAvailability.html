@@ -61,25 +61,29 @@
     <div class="container">
         <h1 style="text-align:center;padding-top:20px;padding-bottom:20px"><b> Availability</b> </h1>
         <div class="row">
-            <div class="col-3">
+            <div class="col-2">
                 <label class="sr-only" for="store-select">Store</label>
                 <select id="store-select" class="form-control mb-2 mr-sm-2" name="stores">
 
                 </select>
             </div>
+            <div title="Date" class="col-2">
+                <label class="sr-only" for="store-date">Date</label>
+                <input type="date" class="form-control mb-2 mr-sm-2" id="store-date" placeholder="mm/dd/yyyy">
+
+            </div>
             <div class="col-3">
-                <label class="sr-only" for="inlineFormInputName2">Start Time</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                <label class="sr-only" for="store-start-time">Start Time</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="store-start-time"
                     placeholder="Start Time (HH:MM)">
 
             </div>
             <div class="col-3">
-                <label class="sr-only" for="inlineFormInputName2">End Time</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
-                    placeholder="End Time (HH:MM)">
+                <label class="sr-only" for="store-end-time">End Time</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="store-end-time" placeholder="End Time (HH:MM)">
 
             </div>
-            <div class="col-2">
+            <div title="Timeslot duration" class="col-1">
                 <label class="sr-only" for="increment-select">Increment</label>
                 <select id="increment-select" class="form-control mb-2 mr-sm-2" name="increment">
                     <option value="5">5 mins</option>
@@ -134,8 +138,12 @@
                 contentType: 'application/json',
                 success: (function (result) {
                     allStores = result.response
-                    for (var store of allStores) {
-                        $('#store-select').append($('<option>', { value: store["_id"]["$oid"], text: store.name }));
+                    // adding values to stores dropdown
+                    if (document.getElementById("store-select").options.length < allStores.length) {
+                        $('#store-select').empty();
+                        for (var store of allStores) {
+                            $('#store-select').append($('<option>', { value: store["_id"]["$oid"], text: store.name }));
+                        }
                     }
                     loadAvailabilityTable(allStores, this.storeName);
                 }).bind({ storeName }),
@@ -236,6 +244,49 @@
                     showNotification("error", "Oops! Something went wrong.")
                 },
             });
+        }
+
+        function onCreate() {
+            var storeId = $("#store-select :selected").val();
+            var date = $("#store-date").val().split("-")[0] + '/' + $("#store-date").val().split("-")[1] + '/' + $("#store-date").val().split("-")[2]
+            var startTime = $("#store-start-time").val();
+            var endTime = $("#store-end-time").val();
+            var increment = $("#increment-select :selected").val()
+            if (validateCreateAvailability(startTime, endTime, increment)) {
+                $.ajax({
+                    type: "POST",
+                    url: "/api/v1/availability",
+                    data: JSON.stringify({
+                        "store_id": storeId,
+                        "date": date,
+                        "start-time": startTime,
+                        "end-time": endTime,
+                        "timeslot-duration": increment
+                    }),
+                    contentType: 'application/json',
+                    success: function (result) {
+                        getAndLoadAvailability("All");
+                        showNotification("Success", "Successfully created the store.")
+
+                    },
+                    error: function (data) {
+                        showNotification("error", "Oops! Something went wrong.")
+                    },
+                });
+            } else {
+                showNotification("error", "Please enter valid entries!")
+            }
+        }
+
+        function validateCreateAvailability(startTime, endTime, increment) {
+            var flag = false;
+            if (!!startTime && !!endTime && !!increment) {
+                flag = `${/^\d{2}:\d{2}$/.test(startTime) && /^\d{2}:\d{2}$/.test(endTime) &&
+                    parseInt(startTime.split(":")[0]) < 24 && parseInt(startTime.split(":")[0]) >= 0 && parseInt(endTime.split(":")[0]) < 24 && parseInt(endTime.split(":")[0]) >= 0 &&
+                    parseInt(startTime.split(":")[1]) < 60 && parseInt(startTime.split(":")[0]) >= 0 && parseInt(endTime.split(":")[1]) < 60 && parseInt(endTime.split(":")[0]) >= 0 &&
+                    (((parseInt(endTime.split(":")[0]) * 60 + parseInt(endTime.split(":")[1])) - ((parseInt(startTime.split(":")[0]) * 60 + parseInt(startTime.split(":")[1])))) >= increment)}` == "true"
+            }
+            return flag;
         }
 
         function showNotification(type, message) {
