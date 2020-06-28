@@ -340,14 +340,17 @@ class Customer(Resource):
         try:
             data = api.payload
             # insert into db
-            inserted_docId = db['customer'].insert_one({
-                'name': data['name'],
-                'phone': data['phone'],
-                'username': data['username'],
-                'password': pbkdf2_sha256.hash(data['password']),
-                'reservations': []
-            })
-            return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
+            if not db['owner'].find_one({"username": data['username']}):
+                inserted_docId = db['customer'].insert_one({
+                    'name': data['name'],
+                    'phone': data['phone'],
+                    'username': data['username'],
+                    'password': pbkdf2_sha256.hash(data['password']),
+                    'reservations': []
+                })
+                return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
+            return Response('{"message":"Username already exists"}', status=200, mimetype='application/json')
+
         except Exception as e:
             print("Error occured:", str(e.args))
             if str(e.args).find("duplicate key error") > -1:
@@ -376,13 +379,16 @@ class Owner(Resource):
     def post(self):
         try:
             data = api.payload
-            inserted_docId = db['owner'].insert_one({
-                'name': data['name'],
-                'phone': data['phone'],
-                'username': data['username'],
-                'password': pbkdf2_sha256.hash(data['password']),
-            })
-            return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
+            if not db['owner'].find_one({"username": data['username']}):
+                inserted_docId = db['owner'].insert_one({
+                    'name': data['name'],
+                    'phone': data['phone'],
+                    'username': data['username'],
+                    'password': pbkdf2_sha256.hash(data['password']),
+                })
+                return Response('{"message":"Succesfully added.","_id":%s}' % dumps(inserted_docId.inserted_id), status=201, mimetype='application/json')
+            return Response('{"message":"Username already exists"}', status=200, mimetype='application/json')
+
         except Exception as e:
             print("Error occured:", str(e.args))
             if str(e.args).find("duplicate key error") > -1:
@@ -479,20 +485,24 @@ def renderCustomerAvailability(id):
     customer_id = id
     return render_template('CustomerAvailability.html', id=customer_id)
 
+
 @app.route("/ownerStores/<id>")
 def renderOwnerStores(id):
     owner_id = id
     return render_template('OwnerStores.html', id=owner_id)
+
 
 @app.route("/ownerAvailability/<id>")
 def renderOWnerAvailability(id):
     owner_id = id
     return render_template('OwnerAvailability.html', id=owner_id)
 
+
 @app.route("/ownerReservations/<id>")
 def renderOwnerReseervations(id):
     owner_id = id
     return render_template('OwnerReservations.html', id=owner_id)
+
 
 if __name__ == "__main__":
     app.run(debug=True, host='0.0.0.0', port=8080)
