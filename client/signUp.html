@@ -40,6 +40,9 @@
                     if(accountType == 'customer'){
                         location.replace("/customerReservations/"+data._id.$oid);
                     }
+                    if(accountType == 'owner'){
+                        location.replace("/ownerStores/"+data._id.$oid);
+                    }
                 },
                 error: function (data) {
                     alert("Error");
