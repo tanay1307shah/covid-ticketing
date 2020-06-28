@@ -396,6 +396,26 @@ class Owner(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
+@ns_api_v1.route('/availability/<id>')
+@ns_api_v1.doc(params={'id': 'owner_id'})
+class OwnerAvailability(Resource):
+    global db
+
+    def get(self, id):
+        try:
+            # operation on table to get all data
+            response = []
+            cursor = db['store'].find(
+                {'id_owner': id}, {"id_owner": 0, "reservations": 0})
+            for doc in cursor:
+                response.append(doc)
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+
 @ns_api_v1.route('/login/<type>')
 @ns_api_v1.doc(params={'type': 'owner or customer'})
 class OwnerLogin(Resource):
