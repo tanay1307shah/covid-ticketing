@@ -3,11 +3,25 @@
 
 <head>
     <title>COVID Tracking</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.js"
+        integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+
+    <!-- Notification library -->
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
 
     <style>
         body {
@@ -27,9 +41,11 @@
                 </div>
                 <div class="col-8" style="padding:0;margin:0; text-align:center">
                     <div class="btn-group" style="padding-top:11px">
-                        <a type="button" role="button" href="/ownerStores/{{ id }}" class="btn btn-primary">Stores</a>
-                        <a type="button" role="button" href="/ownerAvailability/{{ id }}" class="btn btn-secondary">Availability</a>
-                        <a type="button" role="button" href="/ownerReservations/{{ id }}" class="btn btn-secondary">Reservations</a>
+                        <a type="button" role="button" href="/ownerStores/{{ id }}" class="btn btn-secondary">Stores</a>
+                        <a type="button" role="button" href="/ownerAvailability/{{ id }}"
+                            class="btn btn-primary">Availability</a>
+                        <a type="button" role="button" href="/ownerReservations/{{ id }}"
+                            class="btn btn-secondary">Reservations</a>
                         <a type="button" role="button" href="/home" class="btn btn-secondary">Logout</a>
                     </div>
                 </div>
@@ -46,60 +62,195 @@
         <h1 style="text-align:center;padding-top:20px;padding-bottom:20px"><b> Availability</b> </h1>
         <div class="row">
             <div class="col-3">
-                <label class="sr-only" for="inlineFormInputName2">Store</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Store">
+                <label class="sr-only" for="store-select">Store</label>
+                <select id="store-select" class="form-control mb-2 mr-sm-2" name="stores">
+
+                </select>
+            </div>
+            <div class="col-3">
+                <label class="sr-only" for="inlineFormInputName2">Start Time</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                    placeholder="Start Time (HH:MM)">
+
+            </div>
+            <div class="col-3">
+                <label class="sr-only" for="inlineFormInputName2">End Time</label>
+                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                    placeholder="End Time (HH:MM)">
+
+            </div>
+            <div class="col-2">
+                <label class="sr-only" for="increment-select">Increment</label>
+                <select id="increment-select" class="form-control mb-2 mr-sm-2" name="increment">
+                    <option value="5">5 mins</option>
+                    <option value="15">15 mins</option>
+                    <option value="30">30 mins</option>
+                    <option value="60">1 hour</option>
+                    <option value="120">2 hour</option>
+                    <option value="180">3 hour</option>
+                </select>
+            </div>
+            <div class="col-1">
+                <button type="button" onclick="onCreate()" class="btn btn-primary mb-2">Create</button>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-3">
+
                 <h6 style="padding-left:13px; padding-top: 50px"> Store </h6>
             </div>
             <div class="col-4">
-                <label class="sr-only" for="inlineFormInputName2">Start Time</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Start Time">
+
                 <h6 style="padding-left:13px; padding-top: 50px"> Start Time </h6>
             </div>
             <div class="col-4">
-                <label class="sr-only" for="inlineFormInputName2">End Time</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="End Time">
+
                 <h6 style="padding-left:13px; padding-top: 50px"> End Time </h6>
             </div>
+
             <div class="col-1">
-                <button type="submit" class="btn btn-primary mb-2">Create</button>
+
             </div>
         </div>
     </div>
 
     <!-- Table Bar -->
     <div class="container-fluid">
-      <hr style="border: 1px solid black">
+        <hr style="border: 1px solid black">
     </div>
 
     <!-- Table Values -->
     <div class="container">
-        <div class="row">
-            <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-            </div>
-            <div class="col-4">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-            </div>
-            <div class="col-4">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-            </div>
-            <div class="col-1">
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-            </div>
+        <div id="storesGrid" class="row">
+            <!-- Data to be filled by JS -->
         </div>
     </div>
+
+    <script>
+        function getAndLoadAvailability(storeName) {
+            $.ajax({
+                type: "GET",
+                url: "/api/v1/availability/{{ id }}",
+                contentType: 'application/json',
+                success: (function (result) {
+                    allStores = result.response
+                    for (var store of allStores) {
+                        $('#store-select').append($('<option>', { value: store["_id"]["$oid"], text: store.name }));
+                    }
+                    loadAvailabilityTable(allStores, this.storeName);
+                }).bind({ storeName }),
+                error: function (data) {
+                    alert("Error");
+                },
+            });
+        }
+        function loadAvailabilityTable(allStores, storeName) {
+            if (storeName != "All") {
+                var allStores = allStores.filter(function (availability) {
+                    return availability.name == storeName;
+                });
+            }
+            if (allStores.length > 0) {
+                var html = "", index = 0
+                var dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+                html += `<div class="col-3"> `;
+                for (var store of allStores) {
+                    for (var availability of store.availability) {
+                        html += `<h6 id="store-name-${index++}" title="${store.location}" style="padding-left:13px; padding-bottom: 5px"><small> ${store.name} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-4"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var availability of store.availability) {
+                        html += `<h6 id="store-start-time-${index++}" title="${availability["date"]} | ${availability["start-time"]}" style="padding-left:13px; padding-bottom: 5px"><small> ${availability["start-time"]}, ${new Date(availability["date"]).toLocaleDateString("en-US", dateOptions)} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-4"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var availability of store.availability) {
+                        html += `<h6 id="store-end-time-${index++}" title="${availability["date"]} | ${availability["end-time"]}" style="padding-left:13px; padding-bottom: 5px"><small> ${availability["end-time"]}, ${new Date(availability["date"]).toLocaleDateString("en-US", dateOptions)} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-1"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var availability of store.availability) {
+                        html += `<a href="#" style="color:red">
+                        <h6 class="delete-button" id="${store['_id']['$oid']}-${index++}" onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                        </a>`
+                    }
+                }
+                html += `</div>`;
+                $('#storesGrid').html(html);
+            }
+        }
+
+        function onDelete(evt) {
+            var id = evt.getAttribute('id').split('-')[0];
+            var index = evt.getAttribute('id').split('-')[1];
+            var startTime = $("#store-start-time-" + index).prop('title').split(' | ')[1];
+            var endTime = $("#store-end-time-" + index).prop('title').split(' | ')[1];
+            var date = $("#store-end-time-" + index).prop('title').split(' | ')[0];
+            $("body").overhang({
+                type: "confirm",
+                message: "Are you sure?",
+                overlay: true,
+                callback: (function (value) {
+                    if (value) {
+                        deleteAvailability(this.id, this.date, this.startTime, this.endTime);
+                    }
+                }).bind({
+                    id,
+                    date,
+                    startTime,
+                    endTime
+                })
+            });
+        }
+        function deleteAvailability(id, date, startTime, endTime) {
+            $.ajax({
+                type: "DELETE",
+                url: "/api/v1/availability",
+                data: JSON.stringify({
+                    "store_id": id,
+                    "date": date,
+                    "start-time": startTime,
+                    "end-time": endTime
+                }),
+                contentType: 'application/json',
+                success: function (result) {
+                    showNotification("success", "Successfully deleted the availability.")
+                    getAndLoadAvailability("All");
+
+                },
+                error: function (data) {
+                    showNotification("error", "Oops! Something went wrong.")
+                },
+            });
+        }
+
+        function showNotification(type, message) {
+            $("body").overhang({
+                type,
+                message
+            });
+        }
+
+
+        $(document).ready(function () {
+            getAndLoadAvailability("All");
+        });
+
+    </script>
 </body>
 
 </html>
