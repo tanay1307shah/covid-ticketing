@@ -468,12 +468,31 @@ class RetreiveReservations(Resource):
                     return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(selectedCustomer['reservations']), status=200, mimetype='application/json')
             elif(type.lower() == "owner"):
                 response = []
+                # finds stores owned by owner
                 storesOwnedByOwner = db["store"].find(
                     {"id_owner": id})
                 if(storesOwnedByOwner.count()):
+                    storeIndex = 0
+                    # for each store owned by owner add store details to response along with reservations
                     for store in storesOwnedByOwner:
                         response.append(
-                            {"id_store": str(store["_id"]), "reservations": store["reservations"]})
+                            {
+                                "id_store": str(store["_id"]),
+                                "name": store["name"],
+                                "location": store["location"],
+                                "phone": store["phone"],
+                                "reservations": store["reservations"]
+                            })
+                        # for each reservation add a new key customer_name and get it value from customer db
+                        for idx in range(len(store["reservations"])):
+                            # for each customer in reservation find its name
+                            customer = db["customer"].find_one(
+                                {"_id": ObjectId(store["reservations"][idx]["customer_id"])})
+                            # modify the corresponding reservation object in response and update it with a new key customer_name
+                            if(str(ObjectId(customer["_id"])) == response[storeIndex]["reservations"][idx]["customer_id"]):
+                                response[storeIndex]["reservations"][idx].update(
+                                    {"customer_name": customer['name']})
+                        storeIndex = storeIndex+1
                     return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
             return Response('{"message":"Cannot find any reservations."}', status=200, mimetype='application/json')
 
