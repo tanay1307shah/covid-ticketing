@@ -38,6 +38,21 @@ OWNER_TABLE = "owner"
 
 ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
 
+@ns_api_v1.route('/store/<id>')
+@ns_api_v1.doc(params={'id': 'store_id'})
+class StoreById(Resource):
+    global db
+
+    def get(self, id):
+        try:
+            # operation on table to get all data
+            cursor = db['store'].find_one(ObjectId(id))
+            response = cursor
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 @ns_api_v1.route('/store')
 class Store(Resource):

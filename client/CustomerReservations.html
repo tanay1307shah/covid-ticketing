@@ -3,20 +3,37 @@
 
 <head>
     <title>COVID Tracking</title>
+   
     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.0.js"></script>
+    <script src="https://rawgit.com/moment/moment/2.2.1/min/moment.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.js"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
+        
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 
     <script>
+        var reservationsArr =  []
+        var storeName = []
         window.onload = (event) => {
             $.ajax({
                 type: "GET",
@@ -25,12 +42,131 @@
                 success: function (data) {
                     console.log(data);
                     $('#customerName').html(data.response.name)
+                    showData(data)
                 },
                 error: function (data) {
                     alert("Error 503");
                 },
             });
         };
+
+        function showNotification(type, message) {
+            $("body").overhang({
+                type,
+                message
+            });
+        }
+
+
+        function showData(data){
+            
+            if(data.response.reservations.length){
+                html=""
+                var i = 0
+                for(var reservation of data.response.reservations){
+                    reservationsArr.push(reservation)
+                    $.ajax({
+                        type: "GET",
+                        url: "/api/v1/store/"+reservation.store_id,
+                        contentType: 'application/json',
+                        async:false,
+                        success: function (data) {
+                            $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + data.response.name + "</small></h6>")
+                            storeName.push(data.response.name)  
+                            var startTime = moment(reservation.date + " " + reservation["start-time"]);
+                            var endTime = moment(reservation.date + " " + reservation["end-time"]);
+    
+                            $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') +" </small></h6>")
+                            $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') +" </small></h6>")
+                            $('#deleteBtn').append(`<a href="#" style="color:red"><h6 class="delete-button" id=${i} onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>`)
+                        },
+                        error: function (data) {
+                            alert("Error 503");
+                        },
+                    });
+                    i++;
+                    console.log(reservationsArr)
+                }
+            }
+        }
+
+        function getStoreName(store_id){
+            $.ajax({
+                type: "GET",
+                url: "/api/v1/store/"+store_id,
+                contentType: 'application/json',
+                async: false,
+                success: function (data) {
+                    console.log(data.response.name);
+                    return data.response.name
+                },
+                error: function (data) {
+                    alert("Error 503");
+                },
+            });
+        }
+
+        function onDelete(evt) {
+            $("body").overhang({
+                type: "confirm",
+                message: "Are you sure?",
+                overlay: true,
+                callback: (function (value) {
+                    if (value) {
+                        deleteStore(this.id);
+                    }
+                }).bind({ "id": evt.getAttribute('id') })
+            });
+        }
+
+        function deleteStore(id) {
+            console.log(id)
+            var elementToDelete = reservationsArr[id]
+            console.log(elementToDelete)
+            var customer_id = "{{ id }}"
+            $.ajax({
+                type: "DELETE",
+                url: "/api/v1/reservations",
+                data: JSON.stringify({
+                    "store_id" : elementToDelete.store_id,
+                    "customer_id" : "{{ id }}",
+                    "date" : elementToDelete.date,
+                    "start-time" : elementToDelete['start-time'],
+                    "end-time" : elementToDelete['end-time']
+                }),
+                contentType: 'application/json',
+                success: function (result) {
+                    reservationsArr.splice(id,1)
+                    storeName.splice(id,1)
+                    console.log(reservationsArr)
+                    console.log(storeName)
+                    showNotification("success", "Successfully deleted the store.")
+                    getAndLoadStores();
+
+                },
+                error: function (data) {
+                    showNotification("error", "Oops! Something went wrong.")
+                },
+            });
+        }
+
+        function getAndLoadStores(){
+            var i =0
+            $('#storeName').html("")
+            $('#reservationStartDateTime').html("")
+            $('#reservationEndDateTime').html("")
+            $('#deleteBtn').html("")
+            for(var reservation of reservationsArr){
+                $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + storeName[i] + "</small></h6>")
+            
+                var startTime = moment(reservation.date + " " + reservation["start-time"]);
+                var endTime = moment(reservation.date + " " + reservation["end-time"]);
+    
+                $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') +" </small></h6>")
+                $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') +" </small></h6>")
+                $('#deleteBtn').append(`<a href="#" style="color:red"><h6 class="delete-button" id=${i} onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>`)
+            }
+        }
     </script>
 
 </head>
@@ -85,31 +221,11 @@
 
     <!-- Table Items -->
     <div class="container">
-        <div class="row">
-            <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-            </div>
-            <div class="col-4">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-            </div>
-            <div class="col-4">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-            </div>
-            <div class="col-1">
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-            </div>
+        <div id="dataTable" class="row">
+            <div id="storeName" class="col-3"></div>
+            <div id="reservationStartDateTime" class="col-4"></div>
+            <div id="reservationEndDateTime" class="col-4"></div>
+            <div id="deleteBtn" class="col-1"></div>
         </div>
     </div>
 </body>
