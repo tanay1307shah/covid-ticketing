@@ -9,28 +9,151 @@
     <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script src="https://rawgit.com/moment/moment/2.2.1/min/moment.min.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.js"></script>
 
     <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* Firefox */
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 
     <script>
-         window.onload = (event) => {
+        var availbilityArr = []
+        var storeNameArr = []
+        var storeIdArr = []
+        window.onload = (event) => {
             $.ajax({
                 type: "GET",
                 url: "/api/v1/customer/{{ id }}",
                 contentType: 'application/json',
                 success: function (data) {
-                    console.log(data);
                     $('#customerName').html(data.response.name)
+                    showAvailbility()
                 },
                 error: function (data) {
-                    alert("Error 503");
+                    showNotification('error','Server Error')
                 },
             });
         };
+
+        function showNotification(type, message) {
+            $("body").overhang({
+                type,
+                message
+            });
+        }
+
+
+        function showAvailbility(){
+
+            if(true){
+                    $.ajax({
+                        type: "GET",
+                        url: "/api/v1/availability",
+                        contentType: 'application/json',
+                        async:false,
+                        success: function (data) {
+                            
+                            var i = 0
+                            for(var store of data.response){
+                                //console.log(store)
+                                for(var availbility of store.availability){
+                                    availbilityArr.push(availbility)
+                                    storeNameArr.push(store.name)
+                                    storeIdArr.push(store['_id']['$oid'])
+
+                                    $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + store.name + "</small></h6>")
+                                    var startTime = moment(availbility.date + " " + availbility["start-time"]);
+                                    var endTime = moment(availbility.date + " " + availbility["end-time"]);
+            
+                                    $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') +" </small></h6>")
+                                    $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') +" </small></h6>")
+                                    $('#reserveBtn').append(`<a href="#" style="color:blue"><h6 class="delete-button" id=${i} onclick="onReserve(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>`)
+                                    i++;
+                                }
+                              
+                            }
+                        },
+                        error: function (data) {
+                            showNotification("error","Server Error")
+                        },
+                    });
+            }
+        }
+
+        function onReserve(evt) {
+            $("body").overhang({
+                type: "confirm",
+                message: "Are you sure?",
+                overlay: true,
+                callback: (function (value) {
+                    if (value) {
+                        console.log(this.id)
+                        reserveStore(this.id);
+                    }
+                }).bind({ "id": evt.getAttribute('id') })
+            });
+        }
+
+
+        function reserveStore(id){
+            $.ajax({
+                type: "POST",
+                url: "/api/v1/reservations",
+                data: JSON.stringify({
+                    "store_id" : storeIdArr[id],
+                    "customer_id": "{{ id }}",
+                    "date" : availbilityArr[id]['date'],
+                    "start-time": availbilityArr[id]['start-time'],
+                    "end-time": availbilityArr[id]['end-time']
+                }),
+                contentType: 'application/json',
+                success: function (data) {
+                   availbilityArr.splice(id,1)
+                   storeNameArr.splice(id,1)
+                   storeIdArr.splice(id,1) 
+                   loadStores()
+                },
+                error: function (data) {
+                    showNotification("error","Server Error")
+                },
+            });
+        }
+
+
+        function loadStores(){
+            var i =0
+            $('#storeName').html("")
+            $('#reservationStartDateTime').html("")
+            $('#reservationEndDateTime').html("")
+            $('#reserveBtn').html("")
+
+            for(var availbility of availbilityArr){
+
+                $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + storeNameArr[i] + "</small></h6>")
+                var startTime = moment(availbility.date + " " + availbility["start-time"]);
+                var endTime = moment(availbility.date + " " + availbility["end-time"]);
+            
+                $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') +" </small></h6>")
+                $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') +" </small></h6>")
+                $('#reserveBtn').append(`<a href="#" style="color:blue"><h6 class="delete-button" id=${i} onclick="onReserve(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>`)
+                i++;
+            }
+        }
+
     </script>
 </head>
 
@@ -95,32 +218,12 @@
     </div>
 
     <!-- Table Values -->
-    <div class="container">
+    <div style="overflow-y: auto;" class="container">
         <div class="row">
-            <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-            </div>
-            <div class="col-4">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-            </div>
-            <div class="col-4">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-            </div>
-            <div class="col-1">
-                <a href="#" style="color:blue"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>
-                <a href="#" style="color:blue"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>
-                <a href="#" style="color:blue"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>
-                <a href="#" style="color:blue"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>
-            </div>
+            <div id="storeName" class="col-3"></div>
+            <div id="reservationStartDateTime" class="col-4"></div>
+            <div id ="reservationEndDateTime" class="col-4"></div>
+            <div id="reserveBtn" class="col-1"></div>
         </div>
     </div>
 
