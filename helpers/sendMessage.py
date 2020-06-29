@@ -8,12 +8,17 @@ auth_token  = "458c28a9f97e2197bc5354c04443bc52"
 
 def sendMessage(personName,number,storeName,date, startTime, endTime):
 
-    client = Client(account_sid, auth_token)
+    try:
 
-    message = client.messages.create(
-        to= "+1"+number, 
-        from_="+12565007953",
-        body="Hello," + personName + " your reservation for " + storeName + " from " + startTime + " till " + endTime + " on " + date + " is confirmed"
-    )
+        client = Client(account_sid, auth_token)
 
-    print(message.sid)
+        message = client.messages.create(
+            to= "+1"+number, 
+            from_="+12565007953",
+            body="Hello," + personName + " your reservation for " + storeName + " from " + startTime + " till " + endTime + " on " + date + " is confirmed"
+        )
+        print("Sending msg:")
+        print("Hello," + personName + " your reservation for " + storeName + " from " + startTime + " till " + endTime + " on " + date + " is confirmed")
+        print(message.sid)
+    except Exception as e:
+            print("Error occured:", str(e.args))

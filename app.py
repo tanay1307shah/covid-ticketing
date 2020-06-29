@@ -241,7 +241,9 @@ class Reservations(Resource):
                 selectedCustomer = doc
             
             print(data)
+            print("--------------------------")
             print(selectedStore)
+            print("--------------------------")
             print(selectedCustomer)
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
