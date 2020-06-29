@@ -3,11 +3,24 @@
 
 <head>
     <title>COVID Tracking</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.4.1.js"
+        integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+
+    <!-- Notification library -->
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -26,9 +39,11 @@
                 </div>
                 <div class="col-8" style="padding:0;margin:0; text-align:center">
                     <div class="btn-group" style="padding-top:11px">
-                        <a type="button" role="button" href="/ownerStores/{{ id }}" class="btn btn-primary">Stores</a>
-                        <a type="button" role="button" href="/ownerAvailability/{{ id }}" class="btn btn-secondary">Availability</a>
-                        <a type="button" role="button" href="/ownerReservations/{{ id }}" class="btn btn-secondary">Reservations</a>
+                        <a type="button" role="button" href="/ownerStores/{{ id }}" class="btn btn-secondary">Stores</a>
+                        <a type="button" role="button" href="/ownerAvailability/{{ id }}"
+                            class="btn btn-secondary">Availability</a>
+                        <a type="button" role="button" href="/ownerReservations/{{ id }}"
+                            class="btn btn-primary">Reservations</a>
                         <a type="button" role="button" href="/home" class="btn btn-secondary">Logout</a>
                     </div>
                 </div>
@@ -64,44 +79,130 @@
 
     <!-- Table Bar -->
     <div class="container-fluid">
-      <hr style="border: 1px solid black">
+        <hr style="border: 1px solid black">
     </div>
 
     <!-- Table Values -->
     <div class="container">
-        <div class="row">
-            <div class="col-2">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>  A Great Store </small></h6>
+        <div id="reservationGrid" class="row">
+            <!-- <div class="col-2">
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
             </div>
             <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>      10:00 AM, June 2nd, 2020 </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
             </div>
             <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small>     12:00 PM, June 2nd, 2020</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
             </div>
             <div class="col-3">
-              <h6 style="padding-left:13px; padding-bottom: 5px"><small>     Mike</small></h6>
-              <h6 style="padding-left:13px; padding-bottom: 5px"><small>     Binoy</small></h6>
-              <h6 style="padding-left:13px; padding-bottom: 5px"><small>     Julia</small></h6>
-              <h6 style="padding-left:13px; padding-bottom: 5px"><small>     Tanay</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Mike</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Binoy</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Julia</small></h6>
+                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Tanay</small></h6>
             </div>
             <div class="col-1">
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-                <a href="#" style="color:red"><h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>
-            </div>
+                <a href="#" style="color:red">
+                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                </a>
+                <a href="#" style="color:red">
+                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                </a>
+                <a href="#" style="color:red">
+                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                </a>
+                <a href="#" style="color:red">
+                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                </a>
+            </div> -->
         </div>
     </div>
+    <script>
+        function getAndLoadReservations(storeName) {
+            $.ajax({
+                type: "GET",
+                url: "/api/v1/reservations/owner/{{ id }}",
+                contentType: 'application/json',
+                success: (function (result) {
+                    allStores = result.response
+                    loadReservationTable(allStores, this.storeName);
+                }).bind({ storeName }),
+                error: function (data) {
+                    alert("Error");
+                },
+            });
+        }
+        function loadReservationTable(allStores, storeName) {
+            if (storeName != "All") {
+                var allStores = allStores.filter(function (store) {
+                    return store.name == storeName;
+                });
+            }
+            if (allStores.length > 0) {
+                var html = "", index = 0
+                var dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+                html += `<div class="col-2"> `;
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="store-name-${index++}" title="${store.location}" style="padding-left:13px; padding-bottom: 5px"><small> ${store.name} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-3"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="store-start-time-${index++}" title="${reservation["date"]} | ${reservation["start-time"]}" style="padding-left:13px; padding-bottom: 5px"><small> ${reservation["start-time"]}, ${new Date(reservation["date"]).toLocaleDateString("en-US", dateOptions)} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-3"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="store-end-time-${index++}" title="${reservation["date"]} | ${reservation["end-time"]}" style="padding-left:13px; padding-bottom: 5px"><small> ${reservation["end-time"]}, ${new Date(reservation["date"]).toLocaleDateString("en-US", dateOptions)} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-3"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="customer-name-${index++}" style="padding-left:13px; padding-bottom: 5px"><small> ${reservation['customer_name']} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-1"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<a href="#" style="color:red">
+                        <h6 class="delete-button" id="${store['id_store']}-${reservation['customer_id']}-${index++}" onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                        </a>`
+                    }
+                }
+                html += `</div>`;
+                $('#reservationGrid').html(html);
+            }
+        }
+
+        $(document).ready(function () {
+            getAndLoadReservations("All");
+        });
+    </script>
 </body>
 
 </html>
