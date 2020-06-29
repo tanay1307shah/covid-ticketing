@@ -40,8 +40,6 @@
                 url: "/api/v1/customer/{{ id }}",
                 contentType: 'application/json',
                 success: function (data) {
-                    console.log(data);
-                    $('#customerName').html(data.response.name)
                     showData(data)
                 },
                 error: function (data) {
@@ -59,7 +57,7 @@
 
 
         function showData(data){
-            
+            $('#customerName').html(data.response.name)
             if(data.response.reservations.length){
                 html=""
                 var i = 0
@@ -85,7 +83,6 @@
                         },
                     });
                     i++;
-                    console.log(reservationsArr)
                 }
             }
         }

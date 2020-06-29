@@ -14,6 +14,7 @@ from helpers.time import timeSlotDurations, stringTimeToMinutes, minutesToString
 from models.customer import createCustomerSchema, createDeleteCustomerSchema
 from models.login import loginInfoModel
 from helpers.setupDB import setupDB
+from helpers.sendMessage import sendMessage
 from passlib.hash import pbkdf2_sha256
 
 
@@ -238,7 +239,10 @@ class Reservations(Resource):
                 {"_id": ObjectId(data['customer_id'])})
             for doc in cursor:
                 selectedCustomer = doc
-
+            
+            print(data)
+            print(selectedStore)
+            print(selectedCustomer)
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
                 # only add reservation timeslots which are not already existing
@@ -269,6 +273,10 @@ class Reservations(Resource):
                         "end-time": data['end-time']
                     }}
                 })
+
+                #send Twilio Message
+                sendMessage(selectedCustomer['name'],selectedCustomer['phone'],selectedStore['name'],data['date'],data['start-time'],data['end-time'])
+
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
             else:
                 return Response('{"message":"Could not save the reservation as a duplicate entry was found."}', status=201, mimetype='application/json')
