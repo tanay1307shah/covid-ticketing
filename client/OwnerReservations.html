@@ -39,11 +39,11 @@
                 </div>
                 <div class="col-8" style="padding:0;margin:0; text-align:center">
                     <div class="btn-group" style="padding-top:11px">
-                        <a type="button" role="button" href="/ownerStores/{{ id }}" class="btn btn-primary">Stores</a>
+                        <a type="button" role="button" href="/ownerStores/{{ id }}" class="btn btn-secondary">Stores</a>
                         <a type="button" role="button" href="/ownerAvailability/{{ id }}"
                             class="btn btn-secondary">Availability</a>
                         <a type="button" role="button" href="/ownerReservations/{{ id }}"
-                            class="btn btn-secondary">Reservations</a>
+                            class="btn btn-primary">Reservations</a>
                         <a type="button" role="button" href="/home" class="btn btn-secondary">Logout</a>
                     </div>
                 </div>
@@ -84,8 +84,8 @@
 
     <!-- Table Values -->
     <div class="container">
-        <div class="row">
-            <div class="col-2">
+        <div id="reservationGrid" class="row">
+            <!-- <div class="col-2">
                 <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
                 <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
                 <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
@@ -122,30 +122,81 @@
                 <a href="#" style="color:red">
                     <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
                 </a>
-            </div>
+            </div> -->
         </div>
     </div>
     <script>
         function getAndLoadReservations(storeName) {
             $.ajax({
                 type: "GET",
-                url: "/api/v1/reservation/owner/{{ id }}",
+                url: "/api/v1/reservations/owner/{{ id }}",
                 contentType: 'application/json',
                 success: (function (result) {
                     allStores = result.response
-                    // adding values to stores dropdown
-                    if (document.getElementById("store-select").options.length < allStores.length) {
-                        $('#store-select').empty();
-                        for (var store of allStores) {
-                            $('#store-select').append($('<option>', { value: store["_id"]["$oid"], text: store.name }));
-                        }
-                    }
-                    loadAvailabilityTable(allStores, this.storeName);
+                    loadReservationTable(allStores, this.storeName);
                 }).bind({ storeName }),
                 error: function (data) {
                     alert("Error");
                 },
             });
+        }
+        function loadReservationTable(allStores, storeName) {
+            if (storeName != "All") {
+                var allStores = allStores.filter(function (store) {
+                    return store.name == storeName;
+                });
+            }
+            if (allStores.length > 0) {
+                var html = "", index = 0
+                var dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+                html += `<div class="col-2"> `;
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="store-name-${index++}" title="${store.location}" style="padding-left:13px; padding-bottom: 5px"><small> ${store.name} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-3"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="store-start-time-${index++}" title="${reservation["date"]} | ${reservation["start-time"]}" style="padding-left:13px; padding-bottom: 5px"><small> ${reservation["start-time"]}, ${new Date(reservation["date"]).toLocaleDateString("en-US", dateOptions)} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-3"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="store-end-time-${index++}" title="${reservation["date"]} | ${reservation["end-time"]}" style="padding-left:13px; padding-bottom: 5px"><small> ${reservation["end-time"]}, ${new Date(reservation["date"]).toLocaleDateString("en-US", dateOptions)} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-3"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<h6 id="customer-name-${index++}" style="padding-left:13px; padding-bottom: 5px"><small> ${reservation['customer_name']} </small></h6>`
+                    }
+                }
+                html += `
+                </div>
+                <div class="col-1"> `;
+                index = 0
+                for (var store of allStores) {
+                    for (var reservation of store.reservations) {
+                        html += `<a href="#" style="color:red">
+                        <h6 class="delete-button" id="${store['id_store']}-${reservation['customer_id']}-${index++}" onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
+                        </a>`
+                    }
+                }
+                html += `</div>`;
+                $('#reservationGrid').html(html);
+            }
         }
 
         $(document).ready(function () {
