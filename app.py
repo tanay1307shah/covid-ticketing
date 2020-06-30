@@ -40,7 +40,7 @@ CUSTOMER_TABLE = "customer"
 OWNER_TABLE = "owner"
 
 
-ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
+ns_api_v1 = api.namespace('', description='CRUD operations for Store')
 
 @ns_api_v1.route('/store/<id>')
 @ns_api_v1.doc(params={'id': 'store_id'})
