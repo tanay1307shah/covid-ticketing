@@ -38,6 +38,7 @@ db = setupDB("covid-ticketing-db")
 STORE_TABLE = "store"
 CUSTOMER_TABLE = "customer"
 OWNER_TABLE = "owner"
+TWILIO_CRED_TABLE = "twilio_credentials"
 
 
 ns_api_v1 = api.namespace('', description='CRUD operations for Store')
@@ -358,7 +359,7 @@ class Reservations(Resource):
                 })
 
                 # send Twilio Message
-                sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
+                sendMessage(db,selectedCustomer['name'], selectedCustomer['phone'],
                             selectedStore['name'], data['date'], data['start-time'], data['end-time'], " is confirmed.")
 
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
@@ -415,7 +416,7 @@ class Reservations(Resource):
                 selectedStore = db["store"].find_one(
                     {"_id": ObjectId(data['store_id'])})
                 # send Twilio Message
-                sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
+                sendMessage(db,selectedCustomer['name'], selectedCustomer['phone'],
                             selectedStore['name'], data['date'], data['start-time'], data['end-time'], "is deleted.")
                 return {'message': 'Successfully deleted the reservation.'}, 204
 
