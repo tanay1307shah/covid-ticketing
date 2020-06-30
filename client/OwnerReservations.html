@@ -85,44 +85,7 @@
     <!-- Table Values -->
     <div class="container">
         <div id="reservationGrid" class="row">
-            <!-- <div class="col-2">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> A Great Store </small></h6>
-            </div>
-            <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 10:00 AM, June 2nd, 2020 </small></h6>
-            </div>
-            <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> 12:00 PM, June 2nd, 2020</small></h6>
-            </div>
-            <div class="col-3">
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Mike</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Binoy</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Julia</small></h6>
-                <h6 style="padding-left:13px; padding-bottom: 5px"><small> Tanay</small></h6>
-            </div>
-            <div class="col-1">
-                <a href="#" style="color:red">
-                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
-                </a>
-                <a href="#" style="color:red">
-                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
-                </a>
-                <a href="#" style="color:red">
-                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
-                </a>
-                <a href="#" style="color:red">
-                    <h6 style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6>
-                </a>
-            </div> -->
+            <!-- data to be filled by JS -->
         </div>
     </div>
     <script>
@@ -197,6 +160,61 @@
                 html += `</div>`;
                 $('#reservationGrid').html(html);
             }
+        }
+
+        function onDelete(evt) {
+            var storeId = evt.getAttribute('id').split('-')[0];
+            var customerId = evt.getAttribute('id').split('-')[1];
+            var index = evt.getAttribute('id').split('-')[2];
+            var startTime = $("#store-start-time-" + index).prop('title').split(' | ')[1];
+            var endTime = $("#store-end-time-" + index).prop('title').split(' | ')[1];
+            var date = $("#store-end-time-" + index).prop('title').split(' | ')[0];
+            $("body").overhang({
+                type: "confirm",
+                message: "Are you sure?",
+                overlay: true,
+                callback: (function (value) {
+                    if (value) {
+                        deleteReservation(this.storeId, this.customerId, this.date, this.startTime, this.endTime);
+                    }
+                }).bind({
+                    storeId,
+                    customerId,
+                    date,
+                    startTime,
+                    endTime
+                })
+            });
+        }
+
+        function deleteReservation(storeId, customerId, date, startTime, endTime) {
+            $.ajax({
+                type: "DELETE",
+                url: "/api/v1/reservations",
+                data: JSON.stringify({
+                    "store_id": storeId,
+                    "customer_id": customerId,
+                    "date": date,
+                    "start-time": startTime,
+                    "end-time": endTime
+                }),
+                contentType: 'application/json',
+                success: function (result) {
+                    showNotification("success", "Successfully deleted the reservation.")
+                    getAndLoadReservations("All");
+
+                },
+                error: function (data) {
+                    showNotification("error", "Oops! Something went wrong.")
+                },
+            });
+        }
+
+        function showNotification(type, message) {
+            $("body").overhang({
+                type,
+                message
+            });
         }
 
         $(document).ready(function () {
