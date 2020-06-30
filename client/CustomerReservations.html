@@ -50,7 +50,7 @@
                     showData(data)
                 },
                 error: function (data) {
-                    alert("Error 503");
+                    showNotification("error", "Oops! Something went wrong.")
                 },
             });
         };
@@ -86,7 +86,7 @@
                             $('#deleteBtn').append(`<a href="#" style="color:red"><h6 class="delete-button" id=${i} onclick="onDelete(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Delete</small></h6></a>`)
                         },
                         error: function (data) {
-                            alert("Error 503");
+                            showNotification("error", "Oops! Something went wrong.")
                         },
                     });
                     i++;
@@ -101,11 +101,10 @@
                 contentType: 'application/json',
                 async: false,
                 success: function (data) {
-                    console.log(data.response.name);
                     return data.response.name
                 },
                 error: function (data) {
-                    alert("Error 503");
+                    showNotification("error", "Oops! Something went wrong.")
                 },
             });
         }
@@ -124,9 +123,7 @@
         }
 
         function deleteStore(id) {
-            console.log(id)
             var elementToDelete = reservationsArr[id]
-            console.log(elementToDelete)
             var customer_id = "{{ id }}"
             $.ajax({
                 type: "DELETE",
@@ -142,9 +139,7 @@
                 success: function (result) {
                     reservationsArr.splice(id, 1)
                     storeName.splice(id, 1)
-                    console.log(reservationsArr)
-                    console.log(storeName)
-                    showNotification("success", "Successfully deleted the store.")
+                    showNotification("success", "Successfully deleted the reservation.")
                     getAndLoadStores();
 
                 },

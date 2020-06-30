@@ -94,7 +94,6 @@
             storeIdArr = []
             var i = 0
             for (var store of data.response) {
-                //console.log(store)
                 for (var availbility of store.availability) {
                     availbilityArr.push(availbility)
                     storeNameArr.push(store.name)
@@ -120,7 +119,6 @@
                 overlay: true,
                 callback: (function (value) {
                     if (value) {
-                        console.log(this.id)
                         reserveStore(this.id);
                     }
                 }).bind({ "id": evt.getAttribute('id') })
@@ -145,6 +143,7 @@
                     storeNameArr.splice(id, 1)
                     storeIdArr.splice(id, 1)
                     loadStores()
+                    showNotification("success", "Reservation successful.")
                 },
                 error: function (data) {
                     showNotification("error", "Server Error")

@@ -54,7 +54,6 @@
                 data: JSON.stringify({ username, name, phone, password }),
                 contentType: 'application/json',
                 success: function (data) {
-                    console.log(data._id.$oid);
                     if (accountType == 'customer') {
                         location.replace("/customerReservations/" + data._id.$oid);
                     }
@@ -63,7 +62,6 @@
                     }
                 },
                 error: function (data) {
-                    //console.log(data)
                     if (data.responseJSON.message == "Username already used. Please provide a different username.") {
                         showNotification("Error", "Username Already Taken")
                     } else {
