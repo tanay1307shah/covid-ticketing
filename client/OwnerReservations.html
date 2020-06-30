@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div class="col" style="padding:0;margin:0">
-                    <h4 style="text-align: right;padding-top:15px">Example Owner</h4>
+                    <h4 id="owner-name" style="text-align: right;padding-top:15px"></h4>
                 </div>
             </div>
             <hr style="border: 1px solid black">
@@ -216,10 +216,25 @@
                 message
             });
         }
+        function setOwnerNameAndLoadReservations() {
+            $.ajax({
+                type: "GET",
+                url: "/api/v1/owner/{{ id }}",
+                contentType: 'application/json',
+                success: function (data) {
+                    $("#owner-name").html(data.response['name']);
+                    getAndLoadReservations("All");
+                },
+                error: function (data) {
+                    showNotification("error", "Caught you! You are not a valid owner.")
+                },
+            });
+        }
 
         $(document).ready(function () {
-            getAndLoadReservations("All");
+            setOwnerNameAndLoadReservations();
         });
+
     </script>
 </body>
 
