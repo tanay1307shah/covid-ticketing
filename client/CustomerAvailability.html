@@ -4,11 +4,18 @@
 <head>
     <title>COVID Tracking</title>
     <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.5.0.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+        integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
     <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+        integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+        crossorigin="anonymous"></script>
     <script src="https://rawgit.com/moment/moment/2.2.1/min/moment.min.js"></script>
     <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
@@ -18,6 +25,7 @@
         body {
             font-family: 'Poppins', sans-serif;
         }
+
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
             -webkit-appearance: none;
@@ -44,7 +52,7 @@
                     showAvailbility()
                 },
                 error: function (data) {
-                    showNotification('error','Server Error')
+                    showNotification('error', 'Server Error')
                 },
             });
         };
@@ -57,26 +65,26 @@
         }
 
 
-        function showAvailbility(){
+        function showAvailbility() {
 
-            if(true){
-                    $.ajax({
-                        type: "GET",
-                        url: "/api/v1/availability",
-                        contentType: 'application/json',
-                        async:false,
-                        success: function (data) {
-                            viewData(data)
-                            
-                        },
-                        error: function (data) {
-                            showNotification("error","Server Error")
-                        },
-                    });
+            if (true) {
+                $.ajax({
+                    type: "GET",
+                    url: "/api/v1/availability",
+                    contentType: 'application/json',
+                    async: false,
+                    success: function (data) {
+                        viewData(data)
+
+                    },
+                    error: function (data) {
+                        showNotification("error", "Server Error")
+                    },
+                });
             }
         }
 
-        function viewData(data){
+        function viewData(data) {
             $('#storeName').html("")
             $('#reservationStartDateTime').html("")
             $('#reservationEndDateTime').html("")
@@ -85,24 +93,24 @@
             storeNameArr = []
             storeIdArr = []
             var i = 0
-                            for(var store of data.response){
-                                //console.log(store)
-                                for(var availbility of store.availability){
-                                    availbilityArr.push(availbility)
-                                    storeNameArr.push(store.name)
-                                    storeIdArr.push(store['_id']['$oid'])
+            for (var store of data.response) {
+                //console.log(store)
+                for (var availbility of store.availability) {
+                    availbilityArr.push(availbility)
+                    storeNameArr.push(store.name)
+                    storeIdArr.push(store['_id']['$oid'])
 
-                                    $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + store.name + "</small></h6>")
-                                    var startTime = moment(availbility.date + " " + availbility["start-time"]);
-                                    var endTime = moment(availbility.date + " " + availbility["end-time"]);
-            
-                                    $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') +" </small></h6>")
-                                    $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') +" </small></h6>")
-                                    $('#reserveBtn').append(`<a href="#" style="color:blue"><h6 class="delete-button" id=${i} onclick="onReserve(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>`)
-                                    i++;
-                                }
-                              
-                            }
+                    $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + store.name + "</small></h6>")
+                    var startTime = moment(availbility.date + " " + availbility["start-time"]);
+                    var endTime = moment(availbility.date + " " + availbility["end-time"]);
+
+                    $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') + " </small></h6>")
+                    $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') + " </small></h6>")
+                    $('#reserveBtn').append(`<a href="#" style="color:blue"><h6 class="delete-button" id=${i} onclick="onReserve(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>`)
+                    i++;
+                }
+
+            }
         }
 
         function onReserve(evt) {
@@ -120,62 +128,62 @@
         }
 
 
-        function reserveStore(id){
+        function reserveStore(id) {
             $.ajax({
                 type: "POST",
                 url: "/api/v1/reservations",
                 data: JSON.stringify({
-                    "store_id" : storeIdArr[id],
+                    "store_id": storeIdArr[id],
                     "customer_id": "{{ id }}",
-                    "date" : availbilityArr[id]['date'],
+                    "date": availbilityArr[id]['date'],
                     "start-time": availbilityArr[id]['start-time'],
                     "end-time": availbilityArr[id]['end-time']
                 }),
                 contentType: 'application/json',
                 success: function (data) {
-                   availbilityArr.splice(id,1)
-                   storeNameArr.splice(id,1)
-                   storeIdArr.splice(id,1) 
-                   loadStores()
+                    availbilityArr.splice(id, 1)
+                    storeNameArr.splice(id, 1)
+                    storeIdArr.splice(id, 1)
+                    loadStores()
                 },
                 error: function (data) {
-                    showNotification("error","Server Error")
+                    showNotification("error", "Server Error")
                 },
             });
         }
 
 
-        function loadStores(){
-            var i =0
+        function loadStores() {
+            var i = 0
             $('#storeName').html("")
             $('#reservationStartDateTime').html("")
             $('#reservationEndDateTime').html("")
             $('#reserveBtn').html("")
 
-            for(var availbility of availbilityArr){
+            for (var availbility of availbilityArr) {
 
                 $('#storeName').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + storeNameArr[i] + "</small></h6>")
                 var startTime = moment(availbility.date + " " + availbility["start-time"]);
                 var endTime = moment(availbility.date + " " + availbility["end-time"]);
-            
-                $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') +" </small></h6>")
-                $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') +" </small></h6>")
+
+                $('#reservationStartDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + startTime.format('LLL') + " </small></h6>")
+                $('#reservationEndDateTime').append("<h6 style=\"padding-left:13px; padding-bottom: 5px\"><small>" + endTime.format('LLL') + " </small></h6>")
                 $('#reserveBtn').append(`<a href="#" style="color:blue"><h6 class="delete-button" id=${i} onclick="onReserve(this)" style="padding-right:13px;text-align: right; padding-bottom: 5px"><small> Reserve</small></h6></a>`)
                 i++;
             }
         }
 
-        function search(){
+        function search() {
             var searchTerm = $('#searchTerm').val();
             $.ajax({
                 type: "GET",
                 url: "/api/v1/search?searchTerm=" + searchTerm,
                 contentType: 'application/json',
                 success: function (data) {
-                   viewData(data)
+                    viewData(data)
                 },
                 error: function (data) {
-                    showNotification("error","Server Error")
+                    showNotification("error", "Server Error")
                 },
             });
         }
@@ -193,9 +201,11 @@
                 </div>
                 <div class="col-8" style="padding:0;margin:0; text-align:center">
                     <div class="btn-group" style="padding-top:11px">
-                      <a type="button" role="button" href="/customerReservations/{{ id }}" class="btn btn-secondary">My Reservations</a>
-                      <a type="button" role="button" href="/customerAvailability/{{ id }}" class="btn btn-primary">Find Availiability</a>
-                      <a type="button" role="button" href="/home" class="btn btn-secondary">Logout</a>
+                        <a type="button" role="button" href="/customerReservations/{{ id }}"
+                            class="btn btn-secondary">My Reservations</a>
+                        <a type="button" role="button" href="/customerAvailability/{{ id }}"
+                            class="btn btn-primary">Find Availiability</a>
+                        <a type="button" role="button" href="/" class="btn btn-secondary">Logout</a>
                     </div>
                 </div>
                 <div class="col" style="padding:0;margin:0">
@@ -212,7 +222,8 @@
         <div class="row">
             <div class="col-11">
                 <label class="sr-only" for="inlineFormInputName2">Search</label>
-                <input type="text" id="searchTerm" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Type a store name, address or zipcode...">
+                <input type="text" id="searchTerm" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2"
+                    placeholder="Type a store name, address or zipcode...">
             </div>
             <div class="col-1">
                 <button type="submit" onclick="search()" class="btn btn-primary mb-2">Search</button>
@@ -240,7 +251,7 @@
 
     <!-- Table Bar -->
     <div class="container-fluid">
-      <hr style="border: 1px solid black">
+        <hr style="border: 1px solid black">
     </div>
 
     <!-- Table Values -->
@@ -248,7 +259,7 @@
         <div class="row">
             <div id="storeName" class="col-3"></div>
             <div id="reservationStartDateTime" class="col-4"></div>
-            <div id ="reservationEndDateTime" class="col-4"></div>
+            <div id="reservationEndDateTime" class="col-4"></div>
             <div id="reserveBtn" class="col-1"></div>
         </div>
     </div>
