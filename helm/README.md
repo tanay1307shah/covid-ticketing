@@ -59,7 +59,7 @@ helm upgrade --install <a-release-name> helm/nodeapp-build --values helm/nodeapp
  ```
 
  #### How to Deploy
-1. Update the [values.yaml](helm/nodeapp-deploy/values.yaml) for Deploy  with your required values.
+1. Update the [/helm/nodeapp-deploy/values.yaml](/helm/nodeapp-deploy/values.yaml) for Deploy  with your required values.
 2. Stay in root folder. If logged in to the OpenShift cluster via ```oc```, run the following command to create the Deployment, Route and Service via Helm. This will pull the previously built image in previous Build step. Update values in [/helm/nodeapp-deploy/values.yaml](helm/nodeapp-deploy/values.yaml) before running below command.
 ```bash 
 helm upgrade --install <a-release-name> helm/nodeapp-deploy --values helm/nodeapp-deploy/values.yaml
