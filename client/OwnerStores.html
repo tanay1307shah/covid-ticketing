@@ -43,7 +43,7 @@
                     </div>
                 </div>
                 <div class="col" style="padding:0;margin:0">
-                    <h4 style="text-align: right;padding-top:15px">Example Owner</h4>
+                    <h4 id="owner-name" style="text-align: right;padding-top:15px"></h4>
                 </div>
             </div>
             <hr style="border: 1px solid black">
@@ -117,7 +117,9 @@
                 url: "/api/v1/store",
                 contentType: 'application/json',
                 success: function (result) {
-                    allStores = result.response
+                    allStores = result.response.filter(function (store) {
+                        return store["id_owner"] == "{{ id }}"
+                    });
                     loadStoreTable(allStores);
                 },
                 error: function (data) {
@@ -227,8 +229,23 @@
             });
         }
 
+        function setOwnerNameAndLoadStores() {
+            $.ajax({
+                type: "GET",
+                url: "/api/v1/owner/{{ id }}",
+                contentType: 'application/json',
+                success: function (data) {
+                    $("#owner-name").html(data.response['name']);
+                    getAndLoadStores();
+                },
+                error: function (data) {
+                    showNotification("error", "Caught you! You are not a valid owner.")
+                },
+            });
+        }
+
         $(document).ready(function () {
-            getAndLoadStores();
+            setOwnerNameAndLoadStores();
         });
     </script>
 </body>

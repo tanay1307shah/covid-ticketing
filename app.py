@@ -250,6 +250,7 @@ class Reservations(Resource):
                     break
             # Only push the reservation if there are no duplicates
             if not(bDuplicateItemFound):
+
                 # push the reservation to store table
                 result = db["store"].update({
                     '_id': ObjectId(data['store_id']),
@@ -385,6 +386,23 @@ class Customer(Resource):
             print("Error occured:", str(e.args))
             if str(e.args).find("duplicate key error") > -1:
                 return Response('{"message":"Username already used. Please provide a different username."}', status=400, mimetype='application/json')
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+
+@ns_api_v1.route('/owner/<id>')
+@ns_api_v1.doc(params={'id': 'owner_id'})
+class OwnerData(Resource):
+    global db
+   # @marshal_with(store_marshal)
+
+    def get(self, id):
+        try:
+            # operation on table to get all data
+            response = db['owner'].find_one(ObjectId(id), {"password": 0})
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
