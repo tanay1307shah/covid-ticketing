@@ -39,9 +39,11 @@ In a Helm chart the customization happens in the values.yaml used. For each run 
 | MEMORY_LIMIT | Maximum amount of memory the container can use | 512Mi |
 | SRC_IMAGE_NAME | Name of the image that needs to be pulled from ImageStream for deployment | pythonapp |
 
-> Note: If you face any error regarding a duplicate ImageStream, set ```CREATE_NEW_IMAGE_STREAM``` to false in [/helm/nodeapp-build/values.yaml](helm/nodeapp-build/values.yaml) file
+> Note: If you face any error regarding a duplicate ImageStream, set ```CREATE_NEW_IMAGE_STREAM``` to false in [/helm/nodeapp-build/values.yaml](helm/nodeapp-build/values.yaml) file.
 
-> Note: ```NODEJS_VERSION``` is actually the python version
+> Note: ```NODEJS_VERSION``` is actually the python version.
+
+> Note: ```GIT_SECRET``` value in [/helm/nodeapp-build/values.yaml](helm/nodeapp-build/values.yaml)  and name of secret created in Step 4 of prerequisite should match.
 
 #### How to Build  
 1. Update the [values.yaml](helm/nodeapp-build/values.yaml) for Build with your required values.
