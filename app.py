@@ -579,7 +579,7 @@ class Search(Resource):
 # -----------Serve front end file ---------------------------
 
 
-@app.route("/home")
+@app.route("/")
 def renderHomePage():
     return render_template('index.html')
 
