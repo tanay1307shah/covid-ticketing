@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, render_template, url_for
+from flask import Flask, request, Response, render_template, url_for, Blueprint
 from flask_restplus import Api, Resource, fields, marshal_with
 from bson.json_util import dumps, loads
 from bson import ObjectId
@@ -21,14 +21,17 @@ from passlib.hash import pbkdf2_sha256
 import os
 
 app = Flask(__name__, template_folder='./client')
-
+blueprint = Blueprint('api', __name__, url_prefix='/api/v1')
 # This function make sure that swagger UI works when deployed onto a https server
 if os.environ.get('NPM_MIRROR'):
     @property
     def specs_url(self):
         return url_for(self.endpoint('specs'), _external=True, _scheme='https')
     Api.specs_url = specs_url
-api = Api(app)
+api = Api(blueprint, doc='/doc/')
+app.register_blueprint(blueprint)
+
+# assert url_for('api.doc') == '/api/doc/'
 
 db = setupDB("covid-ticketing-db")
 
@@ -38,7 +41,6 @@ OWNER_TABLE = "owner"
 
 
 ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
-
 
 @ns_api_v1.route('/store/<id>')
 @ns_api_v1.doc(params={'id': 'store_id'})
@@ -55,7 +57,6 @@ class StoreById(Resource):
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
-
 
 @ns_api_v1.route('/store')
 class Store(Resource):
@@ -241,6 +242,12 @@ class Reservations(Resource):
                 {"_id": ObjectId(data['customer_id'])})
             for doc in cursor:
                 selectedCustomer = doc
+            
+            print(data)
+            print("--------------------------")
+            print(selectedStore)
+            print("--------------------------")
+            print(selectedCustomer)
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
                 # only add reservation timeslots which are not already existing
@@ -272,9 +279,8 @@ class Reservations(Resource):
                     }}
                 })
 
-                # send Twilio Message
-                sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
-                            selectedStore['name'], data['date'], data['start-time'], data['end-time'], "is confirmed.")
+                #send Twilio Message
+                sendMessage(selectedCustomer['name'],selectedCustomer['phone'],selectedStore['name'],data['date'],data['start-time'],data['end-time'])
 
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
             else:
@@ -284,7 +290,7 @@ class Reservations(Resource):
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
-    @ns_api_v1.response(204, 'Reservation deleted')
+    @ns_api_v1.response(204, 'Store deleted')
     @ns_api_v1.expect(createDeleteReservationSchema(api))
     def delete(self):
         try:
@@ -313,13 +319,6 @@ class Reservations(Resource):
             })
             # If one document is modified
             if(int(delete_store_reservation_result['nModified']) and int(delete_customer_reservation_result['nModified'])):
-                selectedCustomer = db["customer"].find_one(
-                    {"_id": ObjectId(data['customer_id'])})
-                selectedStore = db["store"].find_one(
-                    {"_id": ObjectId(data['store_id'])})
-                # send Twilio Message
-                sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
-                            selectedStore['name'], data['date'], data['start-time'], data['end-time'], "is deleted.")
                 return {'message': 'Successfully deleted the reservation.'}, 204
 
             return {'message': 'Cannot perform the operation as there are no reservations with requested details.'}, 200
@@ -497,31 +496,12 @@ class RetreiveReservations(Resource):
                     return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(selectedCustomer['reservations']), status=200, mimetype='application/json')
             elif(type.lower() == "owner"):
                 response = []
-                # finds stores owned by owner
                 storesOwnedByOwner = db["store"].find(
                     {"id_owner": id})
                 if(storesOwnedByOwner.count()):
-                    storeIndex = 0
-                    # for each store owned by owner add store details to response along with reservations
                     for store in storesOwnedByOwner:
                         response.append(
-                            {
-                                "id_store": str(store["_id"]),
-                                "name": store["name"],
-                                "location": store["location"],
-                                "phone": store["phone"],
-                                "reservations": store["reservations"]
-                            })
-                        # for each reservation add a new key customer_name and get it value from customer db
-                        for idx in range(len(store["reservations"])):
-                            # for each customer in reservation find its name
-                            customer = db["customer"].find_one(
-                                {"_id": ObjectId(store["reservations"][idx]["customer_id"])})
-                            # modify the corresponding reservation object in response and update it with a new key customer_name
-                            if(str(ObjectId(customer["_id"])) == response[storeIndex]["reservations"][idx]["customer_id"]):
-                                response[storeIndex]["reservations"][idx].update(
-                                    {"customer_name": customer['name']})
-                        storeIndex = storeIndex+1
+                            {"id_store": str(store["_id"]), "reservations": store["reservations"]})
                     return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
             return Response('{"message":"Cannot find any reservations."}', status=200, mimetype='application/json')
 
@@ -532,7 +512,7 @@ class RetreiveReservations(Resource):
 
 # -----------Serve front end file ---------------------------
 
-@app.route("/home")
+@app.route("/")
 def renderHomePage():
     return render_template('index.html')
 
