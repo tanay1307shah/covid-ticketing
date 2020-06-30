@@ -241,7 +241,6 @@ class Reservations(Resource):
                 {"_id": ObjectId(data['customer_id'])})
             for doc in cursor:
                 selectedCustomer = doc
-
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
                 # only add reservation timeslots which are not already existing
