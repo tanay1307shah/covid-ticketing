@@ -134,6 +134,26 @@ class Store(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
+@ns_api_v1.route('/availability/<id>')
+@ns_api_v1.doc(params={'id': 'owner_id'})
+class OwnerAvailability(Resource):
+    global db
+
+    def get(self, id):
+        try:
+            # operation on table to get all data
+            response = []
+            cursor = db['store'].find(
+                {'id_owner': id}, {"id_owner": 0, "reservations": 0})
+            for doc in cursor:
+                response.append(doc)
+            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+
 @ns_api_v1.route('/availability')
 class Availability(Resource):
     global db
@@ -224,6 +244,53 @@ class Availability(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
+@ns_api_v1.route('/reservations/<type>/<id>')
+@ns_api_v1.doc(params={'type': 'Customer or owner', 'id': 'Id of owner or customer'})
+class RetreiveReservations(Resource):
+    global db
+
+    def get(self, type, id):
+        try:
+            if(type.lower() == "customer"):
+                selectedCustomer = db[type.lower()].find_one(
+                    {"_id": ObjectId(id)})
+                if(selectedCustomer):
+                    return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(selectedCustomer['reservations']), status=200, mimetype='application/json')
+            elif(type.lower() == "owner"):
+                response = []
+                # finds stores owned by owner
+                storesOwnedByOwner = db["store"].find(
+                    {"id_owner": id})
+                if(storesOwnedByOwner.count()):
+                    storeIndex = 0
+                    # for each store owned by owner add store details to response along with reservations
+                    for store in storesOwnedByOwner:
+                        response.append(
+                            {
+                                "id_store": str(store["_id"]),
+                                "name": store["name"],
+                                "location": store["location"],
+                                "phone": store["phone"],
+                                "reservations": store["reservations"]
+                            })
+                        # for each reservation add a new key customer_name and get it value from customer db
+                        for idx in range(len(store["reservations"])):
+                            # for each customer in reservation find its name
+                            customer = db["customer"].find_one(
+                                {"_id": ObjectId(store["reservations"][idx]["customer_id"])})
+                            # modify the corresponding reservation object in response and update it with a new key customer_name
+                            if(str(ObjectId(customer["_id"])) == response[storeIndex]["reservations"][idx]["customer_id"]):
+                                response[storeIndex]["reservations"][idx].update(
+                                    {"customer_name": customer['name']})
+                        storeIndex = storeIndex+1
+                    return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
+            return Response('{"message":"Cannot find any reservations."}', status=200, mimetype='application/json')
+
+        except Exception as e:
+            print("Error occured:", str(e.args))
+            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
+
 @ns_api_v1.route('/reservations')
 class Reservations(Resource):
     global db
@@ -232,15 +299,11 @@ class Reservations(Resource):
     def post(self):
         try:
             data = api.payload
-            selectedStore = ""
-            selectedCustomer = ""
-            cursor = db["store"].find({"_id": ObjectId(data['store_id'])})
-            for doc in cursor:
-                selectedStore = doc
-            cursor = db["customer"].find(
+
+            selectedStore = db["store"].find_one(
+                {"_id": ObjectId(data['store_id'])})
+            selectedCustomer = db["customer"].find_one(
                 {"_id": ObjectId(data['customer_id'])})
-            for doc in cursor:
-                selectedCustomer = doc
 
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
@@ -248,9 +311,27 @@ class Reservations(Resource):
                 if ((reservation['date'] == data['date'] and reservation['start-time'] == data['start-time'] and reservation['end-time'] == data['end-time'])):
                     bDuplicateItemFound = True
                     break
-            # Only push the reservation if there are no duplicates
-            if not(bDuplicateItemFound):
 
+            bAvailabilityFound = False
+            for availability in selectedStore["availability"]:
+                # check if store has this requested reservation timeslot as availability
+                if ((availability['date'] == data['date'] and availability['start-time'] == data['start-time'] and availability['end-time'] == data['end-time'])):
+                    bAvailabilityFound = True
+                    break
+
+            # Only push the reservation if there are no duplicates and requested reservation timeslot is a valid availability
+            if not(bDuplicateItemFound) and bAvailabilityFound:
+
+                # delete requested time slot from store's availability
+                result = db["store"].update({
+                    '_id': ObjectId(data['store_id']),
+                }, {
+                    '$pull': {"availability": {
+                        "date": data['date'],
+                        "start-time": data['start-time'],
+                        "end-time": data['end-time']
+                    }}
+                })
                 # push the reservation to store table
                 result = db["store"].update({
                     '_id': ObjectId(data['store_id']),
@@ -280,7 +361,7 @@ class Reservations(Resource):
 
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
             else:
-                return Response('{"message":"Could not save the reservation as a duplicate entry was found."}', status=201, mimetype='application/json')
+                return Response('{"message":"Could not save the reservation as a duplicate entry was found or Invalid timeslot requested."}', status=201, mimetype='application/json')
 
         except Exception as e:
             print("Error occured:", str(e.args))
@@ -291,7 +372,7 @@ class Reservations(Resource):
     def delete(self):
         try:
             data = api.payload
-
+            # pull the reservation from store table
             delete_store_reservation_result = db["store"].update({
                 '_id': ObjectId(data['store_id']),
             }, {
@@ -302,7 +383,7 @@ class Reservations(Resource):
                     "customer_id": data['customer_id']
                 }}
             })
-
+            # pull the reservation from customer table
             delete_customer_reservation_result = db["customer"].update({
                 '_id': ObjectId(data['customer_id']),
             }, {
@@ -313,8 +394,20 @@ class Reservations(Resource):
                     "store_id": data['store_id']
                 }}
             })
+
+            # push the reservation timeslot back to store availability
+            addback_availability_result = db["store"].update({
+                '_id': ObjectId(data['store_id']),
+            }, {
+                '$push': {"availability": {
+                    "date": data['date'],
+                    "start-time": data['start-time'],
+                    "end-time": data['end-time']
+                }}
+            })
+
             # If one document is modified
-            if(int(delete_store_reservation_result['nModified']) and int(delete_customer_reservation_result['nModified'])):
+            if(int(delete_store_reservation_result['nModified']) and int(delete_customer_reservation_result['nModified']) and int(addback_availability_result['nModified'])):
                 selectedCustomer = db["customer"].find_one(
                     {"_id": ObjectId(data['customer_id'])})
                 selectedStore = db["store"].find_one(
@@ -444,26 +537,6 @@ class Owner(Resource):
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
 
-@ns_api_v1.route('/availability/<id>')
-@ns_api_v1.doc(params={'id': 'owner_id'})
-class OwnerAvailability(Resource):
-    global db
-
-    def get(self, id):
-        try:
-            # operation on table to get all data
-            response = []
-            cursor = db['store'].find(
-                {'id_owner': id}, {"id_owner": 0, "reservations": 0})
-            for doc in cursor:
-                response.append(doc)
-            return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
-
-        except Exception as e:
-            print("Error occured:", str(e.args))
-            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
-
-
 @ns_api_v1.route('/login/<type>')
 @ns_api_v1.doc(params={'type': 'owner or customer'})
 class OwnerLogin(Resource):
@@ -501,55 +574,8 @@ class Search(Resource):
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
-
-@ns_api_v1.route('/reservations/<type>/<id>')
-@ns_api_v1.doc(params={'type': 'Customer or owner', 'id': 'Id of owner or customer'})
-class RetreiveReservations(Resource):
-    global db
-
-    def get(self, type, id):
-        try:
-            if(type.lower() == "customer"):
-                selectedCustomer = db[type.lower()].find_one(
-                    {"_id": ObjectId(id)})
-                if(selectedCustomer):
-                    return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(selectedCustomer['reservations']), status=200, mimetype='application/json')
-            elif(type.lower() == "owner"):
-                response = []
-                # finds stores owned by owner
-                storesOwnedByOwner = db["store"].find(
-                    {"id_owner": id})
-                if(storesOwnedByOwner.count()):
-                    storeIndex = 0
-                    # for each store owned by owner add store details to response along with reservations
-                    for store in storesOwnedByOwner:
-                        response.append(
-                            {
-                                "id_store": str(store["_id"]),
-                                "name": store["name"],
-                                "location": store["location"],
-                                "phone": store["phone"],
-                                "reservations": store["reservations"]
-                            })
-                        # for each reservation add a new key customer_name and get it value from customer db
-                        for idx in range(len(store["reservations"])):
-                            # for each customer in reservation find its name
-                            customer = db["customer"].find_one(
-                                {"_id": ObjectId(store["reservations"][idx]["customer_id"])})
-                            # modify the corresponding reservation object in response and update it with a new key customer_name
-                            if(str(ObjectId(customer["_id"])) == response[storeIndex]["reservations"][idx]["customer_id"]):
-                                response[storeIndex]["reservations"][idx].update(
-                                    {"customer_name": customer['name']})
-                        storeIndex = storeIndex+1
-                    return Response('{"response":%s,"message":"Succesfully retreived all documents"}' % dumps(response), status=200, mimetype='application/json')
-            return Response('{"message":"Cannot find any reservations."}', status=200, mimetype='application/json')
-
-        except Exception as e:
-            print("Error occured:", str(e.args))
-            return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
-
-
 # -----------Serve front end file ---------------------------
+
 
 @app.route("/home")
 def renderHomePage():
