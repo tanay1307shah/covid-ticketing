@@ -39,6 +39,7 @@ OWNER_TABLE = "owner"
 
 ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
 
+
 @ns_api_v1.route('/store/<id>')
 @ns_api_v1.doc(params={'id': 'store_id'})
 class StoreById(Resource):
@@ -54,6 +55,7 @@ class StoreById(Resource):
         except Exception as e:
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
+
 
 @ns_api_v1.route('/store')
 class Store(Resource):
@@ -239,12 +241,6 @@ class Reservations(Resource):
                 {"_id": ObjectId(data['customer_id'])})
             for doc in cursor:
                 selectedCustomer = doc
-            
-            print(data)
-            print("--------------------------")
-            print(selectedStore)
-            print("--------------------------")
-            print(selectedCustomer)
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
                 # only add reservation timeslots which are not already existing
@@ -276,8 +272,9 @@ class Reservations(Resource):
                     }}
                 })
 
-                #send Twilio Message
-                sendMessage(selectedCustomer['name'],selectedCustomer['phone'],selectedStore['name'],data['date'],data['start-time'],data['end-time'])
+                # send Twilio Message
+                sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
+                            selectedStore['name'], data['date'], data['start-time'], data['end-time'], "is confirmed.")
 
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
             else:
@@ -287,7 +284,7 @@ class Reservations(Resource):
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
-    @ns_api_v1.response(204, 'Store deleted')
+    @ns_api_v1.response(204, 'Reservation deleted')
     @ns_api_v1.expect(createDeleteReservationSchema(api))
     def delete(self):
         try:
@@ -316,6 +313,13 @@ class Reservations(Resource):
             })
             # If one document is modified
             if(int(delete_store_reservation_result['nModified']) and int(delete_customer_reservation_result['nModified'])):
+                selectedCustomer = db["customer"].find_one(
+                    {"_id": ObjectId(data['customer_id'])})
+                selectedStore = db["store"].find_one(
+                    {"_id": ObjectId(data['store_id'])})
+                # send Twilio Message
+                sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
+                            selectedStore['name'], data['date'], data['start-time'], data['end-time'], "is deleted.")
                 return {'message': 'Successfully deleted the reservation.'}, 204
 
             return {'message': 'Cannot perform the operation as there are no reservations with requested details.'}, 200
