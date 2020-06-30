@@ -43,7 +43,7 @@ In a Helm chart the customization happens in the values.yaml used. For each run 
 
 > Note: ```NODEJS_VERSION``` is actually the python version.
 
-> Note: ```GIT_SECRET``` value in [/helm/nodeapp-build/values.yaml](helm/nodeapp-build/values.yaml)  and name of secret created in Step 4 of prerequisite should match.
+> Note: ```GIT_SECRET``` value in [/helm/nodeapp-build/values.yaml](/helm/nodeapp-build/values.yaml)  and name of secret created in Step 4 of prerequisite should match.
 
 #### How to Build  
 1. Update the [values.yaml](helm/nodeapp-build/values.yaml) for Build with your required values.
