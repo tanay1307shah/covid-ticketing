@@ -1,20 +1,12 @@
 ### Summary
 
-This repo helps you to learn how to build and deploy a NodeJS app onto an OpenShift cluster using an OpenShift templates and its equivalent Helm implementation.
+This repo helps you to learn how to build and deploy a Python app onto an OpenShift cluster using an OpenShift templates and its equivalent Helm implementation.
 
-  *Python App Note:
+#### Python App Note:
   1. Run you app at 0.0.0.0:8080 port
-  2. NPM_MIRROR env variable is set in way to identify its running in openshift and for the swagger UI to work with https scheme.
-  3. The base image used is changed to python:latest
-  4. Create the appropriate git repo secret.*
-
-### Helm charts vs OCP template
-
-* [Helm](https://helm.sh/) is best way to find, share, and use software built for Kubernetes. It allows describing the application structure through convenient helm-charts and managing it with simple commands.
-[OCP-Template](https://docs.openshift.com/container-platform/3.5/dev_guide/templates.html) can describe a set of objects, for example services, build configurations, and deployment configurations. These can be processed to create anything you have permission to create within a project
-* Templates are way more static compared to Helm charts. Helm provides values.yaml file which can be used to parameterize the entire helm chart. These values are easy to override for multiple runs using different values file or using console input.
-* Helm charts can deal with many life cycle methods which templates lack.
-* Helm charts can be built around a solid testing framework for making it viable for large projects.
+  2. NPM_MIRROR env variable is set in way to identify its running in OpenShift and for the swagger UI to work with https scheme.
+  3. The base image used is python:latest
+  4. Create the appropriate git repo secret.
 
 ### Prerequisites Helm
 1. User has access to an Openshift Cluster 3.11 or 4. 
@@ -22,7 +14,7 @@ This repo helps you to learn how to build and deploy a NodeJS app onto an OpenSh
 3. First login to your OpenShift cluster via the ```oc login``` command. Make sure you have a working namespace. If not, create a new one.
 4. Run below command to create the source secret in OpenShift. Generate you git passcode following [this](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token). This can be generated only from your personal github repo on the fork of this project.
 ```bash
-oc create secret generic git-secret --from-literal=username=<git-username> --from-literal=password=<git-passcode/password> --type=kubernetes.io/basic-auth
+oc create secret generic github-secret --from-literal=username=<git-username> --from-literal=password=<git-passcode/password> --type=kubernetes.io/basic-auth
 ```
 5. Make sure [Helm client](https://github.com/helm/helm/releases) v3.x.x is installed and added to your path.
 
@@ -35,7 +27,7 @@ In a Helm chart the customization happens in the values.yaml used. For each run 
 | NAME_OVERRIDE  | Value that overrides release name for your created k8s resource in Openshift.| Helm run Release name  |
 | NAMESPACE | Namespace in which ImageStream exists  | openshift |
 | NODEJS_VERSION | Version of python used | latest |
-| GIT_SECRET | Name of secret created in OpenShift to read from source repository. Check prerequisite step for details  | git-secret |
+| GIT_SECRET | Name of secret created in OpenShift to read from source repository. Check prerequisite step for details  | github-secret |
 | SOURCE_REPOSITORY_URL | (REQUIRED) The URL of the repository with your application source code. Repo link of this project's fork in your personal git repo | https://github.com/binoyskumar92/covid-ticketing.git |
 | SOURCE_REPOSITORY_REF | (REQUIRED) Set this to a branch name, tag or other ref of your repository if you | dev-backend-code |
 | CONTEXT_DIR  | Set this to the relative path to your project if it is not in the root | nil |
@@ -48,6 +40,7 @@ In a Helm chart the customization happens in the values.yaml used. For each run 
 | SRC_IMAGE_NAME | Name of the image that needs to be pulled from ImageStream for deployment | pythonapp |
 
 > Note: If you face any error regarding a duplicate ImageStream, set ```CREATE_NEW_IMAGE_STREAM``` to false in [/helm/nodeapp-build/values.yaml](helm/nodeapp-build/values.yaml) file
+
 > Note: ```NODEJS_VERSION``` is actually the python version
 
 #### How to Build  
