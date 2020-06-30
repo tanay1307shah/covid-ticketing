@@ -35,6 +35,9 @@ The app primarily has 2 users, ```A Customer``` and ```A Store Owner```.
 5. To run the backend server open a terminal/cmd and run command ```python app.py```
 6. Now go to ```http://localhost:8080``` to access the home page
 
+### How to deploy to OpenShift:
+This project can be deployed using the included ```Python Helm Charts```. You can read about [Helm](https://www.openshift.com/blog/openshift-4-3-deploy-applications-with-helm-3). It is a much cleaner and easier way to build and deploy applications onto OpenShift. Please refer to the [/helm/README.md](helm/README.md) documentation to go through steps to deploy this project onto OpenShift using Helm.
+
 ### Note
 
 #### Technolgoies used

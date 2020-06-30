@@ -1,0 +1,35 @@
+#The name assigned to all of the frontend objects defined in this template.
+NAME_OVERRIDE: 
+
+#The OpenShift Namespace where the ImageStream resides.
+NAMESPACE: openshift
+
+# Version of NodeJS image to be used (6, 8, or latest).
+NODEJS_VERSION: latest
+
+# Name of secret created in OpenShift to read from source repository
+GIT_SECRET: github-secret
+
+# The URL of the repository with your application source code.
+SOURCE_REPOSITORY_URL: https://github.com/binoyskumar92/covid-ticketing.git
+
+# Set this to a branch name, tag or other ref of your repository if you
+SOURCE_REPOSITORY_REF: dev-backend-code
+
+# Set this to the relative path to your project if it is not in the root
+CONTEXT_DIR: ''
+
+# The exposed hostname that will route to the Node.js service, if left
+APPLICATION_DOMAIN: ''
+
+# The custom NPM mirror URL
+NPM_MIRROR: 'https://npm.strongloop.com'
+
+# If a ImageStream is created in previous build set this to false
+CREATE_NEW_IMAGE_STREAM: false
+
+# Name given to the destination image stored in ImageStream 
+DEST_IMAGE_NAME: pythonapp
+
+
+

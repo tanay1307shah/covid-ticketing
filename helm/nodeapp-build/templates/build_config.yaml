@@ -1,0 +1,36 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ default .Release.Name .Values.NAME_OVERRIDE }}
+  annotations:
+    description: Defines how to build the application
+    template.alpha.openshift.io/wait-for-ready: 'true'
+spec:
+  nodeSelector: {}
+  failedBuildsHistoryLimit: 5
+  source:
+    type: Git
+    git:
+      uri: {{ .Values.SOURCE_REPOSITORY_URL }}
+      ref: {{ .Values.SOURCE_REPOSITORY_REF }}
+    contextDir: {{ .Values.CONTEXT_DIR }}
+    sourceSecret: 
+      name: {{ .Values.GIT_SECRET }}
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: {{ .Values.NAMESPACE }}
+        name: "python:{{ .Values.NODEJS_VERSION }}"
+      env:
+      - name: NPM_MIRROR
+        value: {{ .Values.NPM_MIRROR }}
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "repo:{{ .Values.DEST_IMAGE_NAME }}"
+  triggers:
+  - type: ConfigChange
+status:
+  lastVersion: 0
