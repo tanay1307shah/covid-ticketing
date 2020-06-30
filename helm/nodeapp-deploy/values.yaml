@@ -1,0 +1,12 @@
+#The name assigned to all of the frontend objects defined in this template.
+NAME_OVERRIDE: 
+
+# Name of the source image stored in ImageStream 
+SRC_IMAGE_NAME: pythonapp
+
+# Maximum amount of memory the container can use.
+MEMORY_LIMIT: 512Mi
+
+
+
+

@@ -1,0 +1,17 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ default .Release.Name .Values.NAME_OVERRIDE }}
+  labels:
+    app: {{ default .Release.Name .Values.NAME_OVERRIDE }}
+spec:
+  host: ""
+  to:
+    kind: Service
+    name: {{ default .Release.Name .Values.NAME_OVERRIDE }}
+    weight: 100
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+status:
+  ingress: []
