@@ -46,7 +46,7 @@ In a Helm chart the customization happens in the values.yaml used. For each run 
 > Note: ```GIT_SECRET``` value in [/helm/nodeapp-build/values.yaml](/helm/nodeapp-build/values.yaml)  and name of secret created in Step 4 of prerequisite should match.
 
 #### How to Build  
-1. Update the [values.yaml](/helm/nodeapp-build/values.yaml) for Build with your required values.
+1. Update the [/helm/nodeapp-build/values.yaml](/helm/nodeapp-build/values.yaml) for Build with your required values.
 2. Stay in root folder. If logged in to the OpenShift cluster via ```oc```, run the following command to create the BuildConfig and an ImageStream via Helm. This will build the application source specified by source values in [/helm/nodeapp-build/values.yaml](/helm/nodeapp-build/values.yaml) and push to the ImageStream.
 ```bash 
 helm upgrade --install <a-release-name> helm/nodeapp-build --values helm/nodeapp-build/values.yaml
