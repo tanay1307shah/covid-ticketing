@@ -66,8 +66,25 @@
                         contentType: 'application/json',
                         async:false,
                         success: function (data) {
+                            viewData(data)
                             
-                            var i = 0
+                        },
+                        error: function (data) {
+                            showNotification("error","Server Error")
+                        },
+                    });
+            }
+        }
+
+        function viewData(data){
+            $('#storeName').html("")
+            $('#reservationStartDateTime').html("")
+            $('#reservationEndDateTime').html("")
+            $('#reserveBtn').html("")
+            availbilityArr = []
+            storeNameArr = []
+            storeIdArr = []
+            var i = 0
                             for(var store of data.response){
                                 //console.log(store)
                                 for(var availbility of store.availability){
@@ -86,12 +103,6 @@
                                 }
                               
                             }
-                        },
-                        error: function (data) {
-                            showNotification("error","Server Error")
-                        },
-                    });
-            }
         }
 
         function onReserve(evt) {
@@ -154,6 +165,21 @@
             }
         }
 
+        function search(){
+            var searchTerm = $('#searchTerm').val();
+            $.ajax({
+                type: "GET",
+                url: "/api/v1/search?searchTerm=" + searchTerm,
+                contentType: 'application/json',
+                success: function (data) {
+                   viewData(data)
+                },
+                error: function (data) {
+                    showNotification("error","Server Error")
+                },
+            });
+        }
+
     </script>
 </head>
 
@@ -186,10 +212,10 @@
         <div class="row">
             <div class="col-11">
                 <label class="sr-only" for="inlineFormInputName2">Search</label>
-                <input type="text" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Type a store name...">
+                <input type="text" id="searchTerm" class="form-control mb-2 mr-sm-2" id="inlineFormInputName2" placeholder="Type a store name, address or zipcode...">
             </div>
             <div class="col-1">
-                <button type="submit" class="btn btn-primary mb-2">Search</button>
+                <button type="submit" onclick="search()" class="btn btn-primary mb-2">Search</button>
             </div>
         </div>
     </div>

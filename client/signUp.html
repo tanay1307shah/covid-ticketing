@@ -9,13 +9,24 @@
     <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
-    <style>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/overhang@1.0.8/dist/overhang.min.js"></script>
+   <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
     </style>
 
     <script>
+
+        function showNotification(type, message) {
+            $("body").overhang({
+                type,
+                message
+            });
+        }
+
         function createUser(){
             var accountType = $('input[name=inlineRadioOptions]:checked','#accountType').val();
             var username = $('#username').val();
@@ -28,7 +39,7 @@
             }else if(accountType == 'owner'){
                 url = url + 'owner'
             }else{
-                alert("Error - From not complete!")
+                showNotification("error","Form not complete!")
             }
             $.ajax({
                 type: "POST",
@@ -45,7 +56,13 @@
                     }
                 },
                 error: function (data) {
-                    alert("Error");
+                    //console.log(data)
+                    if(data.responseJSON.message == "Username already used. Please provide a different username."){
+                        showNotification("Error", "Username Already Taken")
+                    }else{
+                        showNotification("error", "Server Error")
+                    }
+
                 },
             });
         }

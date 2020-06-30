@@ -1,4 +1,4 @@
-from flask import Flask, request, Response, render_template, url_for
+from flask import Flask, request, Response, render_template, url_for, Blueprint
 from flask_restplus import Api, Resource, fields, marshal_with
 from bson.json_util import dumps, loads
 from bson import ObjectId
@@ -21,14 +21,17 @@ from passlib.hash import pbkdf2_sha256
 import os
 
 app = Flask(__name__, template_folder='./client')
-
+blueprint = Blueprint('api', __name__, url_prefix='/api/v1')
 # This function make sure that swagger UI works when deployed onto a https server
 if os.environ.get('NPM_MIRROR'):
     @property
     def specs_url(self):
         return url_for(self.endpoint('specs'), _external=True, _scheme='https')
     Api.specs_url = specs_url
-api = Api(app)
+api = Api(blueprint, doc='/doc/')
+app.register_blueprint(blueprint)
+
+# assert url_for('api.doc') == '/api/doc/'
 
 db = setupDB("covid-ticketing-db")
 
@@ -37,7 +40,7 @@ CUSTOMER_TABLE = "customer"
 OWNER_TABLE = "owner"
 
 
-ns_api_v1 = api.namespace('api/v1', description='CRUD operations for Store')
+ns_api_v1 = api.namespace('', description='CRUD operations for Store')
 
 
 @ns_api_v1.route('/store/<id>')
@@ -304,7 +307,6 @@ class Reservations(Resource):
                 {"_id": ObjectId(data['store_id'])})
             selectedCustomer = db["customer"].find_one(
                 {"_id": ObjectId(data['customer_id'])})
-
             bDuplicateItemFound = False
             for reservation in selectedStore['reservations']:
                 # only add reservation timeslots which are not already existing
@@ -357,7 +359,7 @@ class Reservations(Resource):
 
                 # send Twilio Message
                 sendMessage(selectedCustomer['name'], selectedCustomer['phone'],
-                            selectedStore['name'], data['date'], data['start-time'], data['end-time'], "is confirmed.")
+                            selectedStore['name'], data['date'], data['start-time'], data['end-time'], " is confirmed.")
 
                 return Response('{"message":"Successfully saved the reservation."}', status=201, mimetype='application/json')
             else:
@@ -367,7 +369,7 @@ class Reservations(Resource):
             print("Error occured:", str(e.args))
             return Response('{"message":"Server error. Please check logs."}', status=400, mimetype='application/json')
 
-    @ns_api_v1.response(204, 'Reservation deleted')
+    @ns_api_v1.response(204, 'Store deleted')
     @ns_api_v1.expect(createDeleteReservationSchema(api))
     def delete(self):
         try:
