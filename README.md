@@ -11,7 +11,8 @@ The app primarily has 2 users, ```A Customer``` and ```A Store Owner```.
 1. You can sign up as an ```Owner``` using the ```Signup``` from home page. Select Owner radio button.
 2. An ```Owner``` can create new stores using the ```Stores tab``` when logged in as owner. The Name, Address and Phone are the three inputs that needs to be provided.
 3. Once a store is created, owner can also create availability slots for a particular date. As an example say I created the store, Target, and now I am planning to create availability slots from ```10:00``` to ```12:00``` with ```30 min``` increments. This creates 4 availability slots (10:00,10:30),(10:30,11:00),(11:00,11:30),(11:30,12:00) for the selected date. 
-4. This can be done using the ```Availability tab``` when you log in as owner and choose the Store for which you need to create time slot from stores ```dropdown``` list, choose the date from the ```date``` widget, a ```start-time```(HH:MM 24hr format), ```end-time```(HH:MM 24hr format) and an individual timeslot duration from ```increments``` dropdown list.
+4. This can be done using the ```Availability tab``` when you log in as owner and choose the Store for which you need to create time slot from stores ```dropdown``` list, choose the date from the ```date``` widget, a ```start-time```(HH:MM 24hr format), ```end-time```(HH:MM 24hr format) and an individual timeslot duration from ```increments```
+ dropdown list.
 5. The owner can also see all the reservations made by different customers for the stores he own.
 6. The owner can even delete reservations if needed and the customer would be notified about the removal of reservation.
 7. The owner can delete an entire store listing as well which will inturn delete all the previous reservations customers made with that store.
@@ -21,13 +22,13 @@ The app primarily has 2 users, ```A Customer``` and ```A Store Owner```.
 2. When a customer logs in all the reservations made by he/she to different stores is visible in the ```Reservations``` tab. There is also an option to ```Delete``` any of the reservations. If a reservation is deleted, that particular time slot goes back to the availability slot for that store.
 3. The ```Find Availability``` tab helps in showing customer all the availability listings from different stores. The customer can choose any convenient availability slot and ```Reserve``` it. As soon as reservation is successful, text message would be received to mobile phone number attached to customer. The delete reservation also sends a reservation status via text message.
 
+### How to run locally
 
-### Prerequisite: 
+#### Prerequisite: 
 1. [Python 3.x](https://www.python.org/downloads/)
 2. [Pip](https://pip.pypa.io/en/stable/installing/)
 
-### How to run locally
-
+#### Steps
 1. Clone this project.
 2. Run ```pip install requirements.txt```. Requirements file has all the necessary modules that needs to be installed on your machine to run the app.
 3. Client folder has the UI code and ```app.py``` has the backend api code. You can refer to ```localhost:8080/api/v1/docs``` to see swagger documentation of all APIs used. These are public as of now for ease of use and visibility but can definitely be hidden if required.
