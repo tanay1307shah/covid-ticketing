@@ -148,7 +148,7 @@
                     loadAvailabilityTable(allStores, this.storeName);
                 }).bind({ storeName }),
                 error: function (data) {
-                    alert("Error");
+                    showNotification("error", "Oops! Something went wrong.")
                 },
             });
         }
