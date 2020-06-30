@@ -38,7 +38,7 @@
             var accountType = $('input[name=inlineRadioOptions]:checked', '#accountType').val();
             var username = $('#email').val()
             var password = $('#password').val()
-            if (accountType == "" || username == "" || password == "") {
+            if ((!accountType) || username == "" || password == "") {
                 showNotification("error", "Incomplete Form")
             } else {
                 $.ajax({
@@ -55,7 +55,7 @@
                         }
                     },
                     error: function (data) {
-                        showNotification("error", "Server Error")
+                        showNotification("error", "Login not successful. Please check your username and password.")
                     },
                 });
             }

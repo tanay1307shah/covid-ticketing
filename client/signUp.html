@@ -63,7 +63,7 @@
                 },
                 error: function (data) {
                     if (data.responseJSON.message == "Username already used. Please provide a different username.") {
-                        showNotification("Error", "Username Already Taken")
+                        showNotification("Error", "Username Already Taken. Please try a different name.")
                     } else {
                         showNotification("error", "Server Error")
                     }
