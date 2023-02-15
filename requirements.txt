@@ -3,4 +3,4 @@ pymongo==3.10.1
 flask_restplus==0.13.0
 passlib==1.7.2
 twilio==6.43.0
-Werkzeug==0.16.1
+Werkzeug==2.2.3
